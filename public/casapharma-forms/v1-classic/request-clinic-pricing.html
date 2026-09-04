@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Request Clinic Pricing — Casa Pharma RX (version 1)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@500;600;700&family=Outfit:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/forms.css">
+</head>
+<body>
+
+<div class="topbar">Licensed providers only · Products dispensed against patient-specific prescriptions</div>
+<header class="site-header">
+  <a class="site-header__logo" href="request-clinic-pricing.html"><img src="../assets/brand/logo-casa-pharma-rx.svg" alt="Casa Pharma Rx"></a>
+  <nav aria-label="Forms">
+    <a href="request-clinic-pricing.html" aria-current="page">Request Clinic Pricing</a>
+    <a href="refer-your-doctor.html">Refer Your Doctor</a>
+  </nav>
+</header>
+
+<h1 class="band">Request Clinic Pricing</h1>
+
+<main class="page">
+
+  <section class="intro">
+    <h2>Welcome Doctors!</h2>
+    <p><strong>Our team is happy to help you grow your practice and keep your patients healthier!</strong></p>
+    <p>If you are an existing client with billing, technical, or shipping questions, please feel free to fill out the <a href="https://casapharmarx.com/help-center/">Help Center form</a>, and a customer care expert will be happy to assist you.</p>
+    <p>If you are a patient seeking medication, please keep in mind that you will need a doctor's prescription. If your doctor is not in our system, you will need to <a href="refer-your-doctor.html">refer them to us</a> first.</p>
+    <p><strong>If you are a doctor, please fill out all required fields, and we'll be happy to get back to you and help you transform your medical practice!</strong></p>
+  </section>
+
+  <form class="step-form" data-steps data-form-id="request-clinic-pricing-v1" novalidate>
+
+    <!-- Attribution fields the site fills from the URL (gclid, utm_*, ...). Kept so the payload matches the current form. -->
+    <input type="hidden" name="gclid"><input type="hidden" name="gbraid"><input type="hidden" name="wbraid"><input type="hidden" name="msclkid"><input type="hidden" name="fbclid"><input type="hidden" name="ads_id">
+    <input type="hidden" name="utm_source"><input type="hidden" name="utm_medium"><input type="hidden" name="utm_campaign"><input type="hidden" name="utm_campaign_id"><input type="hidden" name="utm_adgroup_id"><input type="hidden" name="utm_ad_id"><input type="hidden" name="utm_term"><input type="hidden" name="utm_device"><input type="hidden" name="utm_network"><input type="hidden" name="utm_id"><input type="hidden" name="utm_content">
+    <input type="hidden" name="adgroupid"><input type="hidden" name="campaignid"><input type="hidden" name="creative"><input type="hidden" name="lead_source"><input type="hidden" name="last_url_entry">
+    <input type="hidden" name="has-account" value="No">
+
+    <div class="progress">
+      <p class="progress__status"><span data-progress-text aria-live="polite">Step 1 of 4</span><span class="progress__title" data-progress-title>Contact</span></p>
+      <ol class="progress__track" aria-label="Form steps">
+        <li class="is-current" aria-current="step"><button type="button"><span class="num" aria-hidden="true">1</span><span class="label">Contact</span></button></li>
+        <li><button type="button" disabled><span class="num" aria-hidden="true">2</span><span class="label">Clinic</span></button></li>
+        <li><button type="button" disabled><span class="num" aria-hidden="true">3</span><span class="label">Practice</span></button></li>
+        <li><button type="button" disabled><span class="num" aria-hidden="true">4</span><span class="label">Additional information</span></button></li>
+      </ol>
+      <div class="progress__bar" aria-hidden="true"><span class="progress__fill"></span></div>
+    </div>
+
+    <!-- Step 1 -->
+    <fieldset class="step">
+      <legend class="step__title" tabindex="-1">Contact</legend>
+      <p class="step__intro">How can we reach you?</p>
+      <p class="step__alert" role="alert" hidden></p>
+
+      <div class="step__fields">
+        <div class="field" data-message-required="Please choose how we can help you.">
+          <label for="query-type"><span class="req" aria-hidden="true">*</span>How can we help you?</label>
+          <select id="query-type" name="query-type" required>
+            <option value="">—Please choose an option—</option>
+            <option value="Product, pricing and speak with a sales person">Product, pricing and speak with a sales person</option>
+            <option value="Set up my new account">Set up my new account</option>
+          </select>
+          <p class="field__error" id="query-type-error" hidden></p>
+        </div>
+
+        <fieldset class="field" data-required data-min="1" data-message-required="Please choose at least one way to contact you.">
+          <legend><span class="req" aria-hidden="true">*</span>Select preferred contact method</legend>
+          <div class="choices">
+            <label class="choice"><input type="checkbox" name="preferred-contact-method[]" value="Text Messages" checked><span>Text Messages</span></label>
+            <label class="choice"><input type="checkbox" name="preferred-contact-method[]" value="Phone" checked><span>Phone</span></label>
+            <label class="choice"><input type="checkbox" name="preferred-contact-method[]" value="Email" checked><span>Email</span></label>
+          </div>
+          <p class="field__error" id="preferred-contact-method-error" hidden></p>
+        </fieldset>
+
+        <div class="field field--half" data-message-required="Please enter your first name.">
+          <label for="first-name"><span class="req" aria-hidden="true">*</span>First Name</label>
+          <input id="first-name" name="first-name" type="text" autocomplete="given-name" required>
+          <p class="field__error" id="first-name-error" hidden></p>
+        </div>
+
+        <div class="field field--half" data-message-required="Please enter your last name.">
+          <label for="last-name"><span class="req" aria-hidden="true">*</span>Last Name</label>
+          <input id="last-name" name="last-name" type="text" autocomplete="family-name" required>
+          <p class="field__error" id="last-name-error" hidden></p>
+        </div>
+
+        <div class="field" data-message-required="Please enter your email address." data-message-invalid="Please enter a valid email address, like name@clinic.com.">
+          <label for="your-email"><span class="req" aria-hidden="true">*</span>Email</label>
+          <input id="your-email" name="your-email" type="email" autocomplete="email" required>
+          <p class="field__error" id="your-email-error" hidden></p>
+        </div>
+
+        <div class="field" data-message-required="Please enter your mobile number." data-message-invalid="Please enter a phone number with at least 10 digits.">
+          <label for="mobile"><span class="req" aria-hidden="true">*</span>Mobile</label>
+          <input id="mobile" name="mobile" type="tel" autocomplete="tel" placeholder="(___) ___ ____" data-min-digits="10" required>
+          <p class="field__error" id="mobile-error" hidden></p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn--primary" data-next>Continue</button>
+      </div>
+    </fieldset>
+
+    <!-- Step 2 -->
+    <fieldset class="step" hidden>
+      <legend class="step__title" tabindex="-1">Clinic</legend>
+      <p class="step__intro">Tell us about your clinic.</p>
+      <p class="step__alert" role="alert" hidden></p>
+
+      <div class="step__fields">
+        <div class="field" data-message-required="Please enter your clinic name.">
+          <label for="clinic-name"><span class="req" aria-hidden="true">*</span>Clinic Name</label>
+          <input id="clinic-name" name="clinic-name" type="text" autocomplete="organization" required>
+          <p class="field__error" id="clinic-name-error" hidden></p>
+        </div>
+
+        <div class="field field--half" data-message-required="Please enter how many clinics you have." data-message-invalid="Please enter a whole number between 1 and 100.">
+          <label for="clinics-number"><span class="req" aria-hidden="true">*</span>Number of Clinics</label>
+          <input id="clinics-number" name="clinics-number" type="number" min="1" max="100" step="1" inputmode="numeric" required>
+          <p class="field__error" id="clinics-number-error" hidden></p>
+        </div>
+
+        <div class="field field--half" data-message-required="Please choose the number of physicians.">
+          <label for="physicians-number"><span class="req" aria-hidden="true">*</span>Number of Physicians</label>
+          <select id="physicians-number" name="physicians-number" required>
+            <option value="">—Please choose an option—</option>
+            <option value="1">1</option>
+            <option value="2 - 5">2 - 5</option>
+            <option value="6 - 10">6 - 10</option>
+            <option value="11 - 100">11 - 100</option>
+            <option value="101 - or more">101 - or more</option>
+          </select>
+          <p class="field__error" id="physicians-number-error" hidden></p>
+        </div>
+
+        <div class="field" data-message-required="Please choose your monthly patient volume.">
+          <label for="patients-number"><span class="req" aria-hidden="true">*</span>Number of patients per month</label>
+          <select id="patients-number" name="patients-number" required>
+            <option value="">—Please choose an option—</option>
+            <option value="Just starting">Just starting</option>
+            <option value="1 – 100">1 – 100</option>
+            <option value="101 – 150">101 – 150</option>
+            <option value="151 – 500">151 – 500</option>
+            <option value="501 or more">501 or more</option>
+          </select>
+          <p class="field__error" id="patients-number-error" hidden></p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn--primary" data-next>Continue</button>
+        <button type="button" class="btn btn--ghost" data-back>Back</button>
+      </div>
+    </fieldset>
+
+    <!-- Step 3 -->
+    <fieldset class="step" hidden>
+      <legend class="step__title" tabindex="-1">Practice</legend>
+      <p class="step__intro">Select every type of practice that applies.</p>
+      <p class="step__alert" role="alert" hidden></p>
+
+      <div class="step__fields">
+        <fieldset class="field" data-required data-min="1" data-message-required="Please select at least one type of practice.">
+          <legend><span class="req" aria-hidden="true">*</span>Type of practice (please select all that apply) <span class="count" data-count aria-live="polite">None selected</span></legend>
+          <div class="tiles">
+            <div class="tiles__group">
+              <p class="tiles__label">Primary and internal</p>
+              <div class="tiles__items">
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Primary Care"><span>Primary Care</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Family Medicine"><span>Family Medicine</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Internal Medicine"><span>Internal Medicine</span></label>
+              </div>
+            </div>
+            <div class="tiles__group">
+              <p class="tiles__label">Hormone and metabolic</p>
+              <div class="tiles__items">
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Bariatrics / Metabolic Medicine"><span>Bariatrics / Metabolic Medicine</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Hormone Therapy / Wellness"><span>Hormone Therapy / Wellness</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Endocrinology"><span>Endocrinology</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Functional Medicine"><span>Functional Medicine</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Regenerative / Anti-Aging Medicine"><span>Regenerative / Anti-Aging Medicine</span></label>
+              </div>
+            </div>
+            <div class="tiles__group">
+              <p class="tiles__label">Aesthetics and surgery</p>
+              <div class="tiles__items">
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Aesthetics / Medical Spa"><span>Aesthetics / Medical Spa</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Plastic Surgery"><span>Plastic Surgery</span></label>
+              </div>
+            </div>
+            <div class="tiles__group">
+              <p class="tiles__label">Specialty care</p>
+              <div class="tiles__items">
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="OB/GYN"><span>OB/GYN</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Pain Management"><span>Pain Management</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Sports Medicine / Orthopedics"><span>Sports Medicine / Orthopedics</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Men &amp; Women’s Sexual Health"><span>Men &amp; Women’s Sexual Health</span></label>
+              </div>
+            </div>
+            <div class="tiles__group">
+              <p class="tiles__label">Practice model</p>
+              <div class="tiles__items">
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Telemedicine Practice"><span>Telemedicine Practice</span></label>
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Corporate Wellness"><span>Corporate Wellness</span></label>
+              </div>
+            </div>
+            <div class="tiles__group">
+              <p class="tiles__label">Other</p>
+              <div class="tiles__items">
+                <label class="choice"><input type="checkbox" name="practice-type[]" value="Other (Specify in Notes)"><span>Other (Specify in Notes)</span></label>
+              </div>
+            </div>
+          </div>
+          <p class="hint" data-hint-for="Other (Specify in Notes)" hidden>Please describe your practice in the Notes on the last step.</p>
+          <p class="field__error" id="practice-type-error" hidden></p>
+        </fieldset>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn btn--primary" data-next>Continue</button>
+        <button type="button" class="btn btn--ghost" data-back>Back</button>
+      </div>
+    </fieldset>
+
+    <!-- Step 4 -->
+    <fieldset class="step" hidden>
+      <legend class="step__title" tabindex="-1">Additional information</legend>
+      <p class="step__intro">Anything else we should know before we get in touch?</p>
+      <p class="step__alert" role="alert" hidden></p>
+
+      <div class="step__fields">
+        <div class="field" data-message-required="Please add a short note about what you need.">
+          <label for="message"><span class="req" aria-hidden="true">*</span>Notes:</label>
+          <textarea id="message" name="message" maxlength="255" placeholder="How can we help..." required></textarea>
+          <p class="field__error" id="message-error" hidden></p>
+        </div>
+
+        <div class="field consent" data-message-required="Please review and accept the Privacy Policy and Terms and Conditions to continue.">
+          <label class="choice choice--consent">
+            <input type="checkbox" name="acceptance-261" value="1" required>
+            <span>Please visit our <a href="https://casapharmarx.com/privacy-policy-terms-and-conditions/" target="_blank" rel="noopener noreferrer">Privacy Policy and Terms and Conditions</a> to continue.</span>
+          </label>
+          <p class="field__error" id="acceptance-error" hidden></p>
+        </div>
+      </div>
+
+      <div class="captcha" aria-hidden="true">Cloudflare Turnstile<br><small>renders here on the live site</small></div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn--primary">Submit</button>
+        <button type="button" class="btn btn--ghost" data-back>Back</button>
+      </div>
+    </fieldset>
+
+  </form>
+
+  <section class="confirmation" data-confirmation-for="request-clinic-pricing-v1" role="status" tabindex="-1" hidden>
+    <span class="confirmation__icon" aria-hidden="true">✓</span>
+    <h2>Your pricing request is on its way</h2>
+    <p class="confirmation__message">Thank you for your message. It has been sent.</p>
+    <p class="confirmation__next">What happens next</p>
+    <ol>
+      <li>A Casa Pharma RX representative reviews your request.</li>
+      <li>We contact you using your preferred method, usually within one business day.</li>
+      <li>You receive clinic pricing and the next steps to open your account.</li>
+    </ol>
+    <p class="confirmation__contact">Questions? Call (877) 937-6868 or email info@casapharmarx.com.</p>
+  </section>
+
+</main>
+
+<script src="../js/forms.js"></script>
+</body>
+</html>

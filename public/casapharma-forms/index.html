@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Casa Pharma RX Forms</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap">
+<style>
+  :root { --navy: #0c2649; --teal: #37cca4; --fx: #1db9c3; --text: #303640; --muted: #7c8491; --border: #e1e5e8; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #f7f8fa; color: var(--text); font-family: "Outfit", "Helvetica Neue", Arial, sans-serif; line-height: 1.55; }
+  main { max-width: 960px; margin: 0 auto; padding: 4rem 5% 5rem; }
+  .eyebrow { margin: 0 0 0.5rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  h1 { margin: 0 0 0.5rem; font-size: 2rem; font-weight: 600; color: var(--navy); line-height: 1.15; }
+  .lede { margin: 0 0 2.5rem; max-width: 60ch; color: var(--text); }
+  .versions { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+  .version { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; border-top: 4px solid var(--accent); }
+  .version h2 { margin: 0 0 0.25rem; font-size: 1.25rem; color: var(--navy); }
+  .version p { margin: 0 0 1.25rem; color: var(--muted); font-size: 0.95rem; }
+  .version ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.5rem; }
+  .version a { display: block; padding: 0.7rem 1rem; border-radius: 8px; background: var(--accent); color: #fff; text-decoration: none; font-weight: 500; text-align: center; }
+  .version a:hover { filter: brightness(0.92); }
+  .swatches { display: flex; gap: 0.4rem; margin: 0 0 1rem; }
+  .swatches span { width: 22px; height: 22px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.08); }
+  @media (max-width: 640px) { .versions { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Casa Pharma RX · front-end forms</p>
+  <h1>Two versions of the multi-step forms</h1>
+  <p class="lede">Same fields, same steps and the same behaviour in both. Version 1 keeps the current site look; version 2 follows the ContainerFX design.</p>
+
+  <div class="versions">
+    <section class="version" style="--accent: #37cca4">
+      <h2>Version 1 · Classic</h2>
+      <p>Current branding: teal and blue, League Spartan headings, navy title band, clickable step track, pill buttons.</p>
+      <div class="swatches" aria-hidden="true"><span style="background:#37cca4"></span><span style="background:#3d84ec"></span><span style="background:#0c2649"></span><span style="background:#f2f3f5"></span></div>
+      <ul>
+        <li><a href="v1-classic/request-clinic-pricing.html">Request Clinic Pricing</a></li>
+        <li><a href="v1-classic/refer-your-doctor.html">Refer Your Doctor</a></li>
+      </ul>
+    </section>
+
+    <section class="version" style="--accent: #1db9c3">
+      <h2>Version 2 · ContainerFX</h2>
+      <p>From the design image: two-column layout with pill and checklist, segmented progress, white inputs, full-width Continue.</p>
+      <div class="swatches" aria-hidden="true"><span style="background:#1db9c3"></span><span style="background:#003d5c"></span><span style="background:#dcdfe5"></span><span style="background:#ffffff"></span></div>
+      <ul>
+        <li><a href="v2-fx/request-clinic-pricing.html">Request Clinic Pricing</a></li>
+        <li><a href="v2-fx/refer-your-doctor.html">Refer Your Doctor</a></li>
+      </ul>
+    </section>
+  </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,269 @@
+/*
+ * Casa Pharma RX — multi-step forms (front end)
+ * Design base: assets/ContainerFX.png
+ *
+ * Plain CSS, no framework. Tokens at the top, then page layout, then the
+ * form components in the order they appear on screen.
+ */
+
+:root {
+  --teal: #1db9c3;
+  --teal-dark: #149aa3;
+  --teal-soft: rgba(29, 185, 195, 0.1);
+  --navy: #003d5c;
+  --ink: #0a0a0a;
+  --body: #364153;
+  --sub: #4a5565;
+  --muted: #6a7282;
+  --placeholder: #848484;
+  --border: #dcdfe5;
+  --track: #e5e7eb;
+  --bg: #ffffff;
+  --bg-alt: #f7f8fa;
+  --error: #c0392b;
+  --error-soft: #fdf2f1;
+  --radius: 8px;
+  --focus: 0 0 0 3px rgba(29, 185, 195, 0.3);
+  --font: "Outfit", "Inter", "Helvetica Neue", Arial, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--body);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+a { color: var(--teal-dark); }
+[hidden] { display: none !important; }
+
+.sr-only {
+  position: absolute !important;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden; clip: rect(0 0 0 0);
+  white-space: nowrap; border: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                 */
+/* ------------------------------------------------------------------ */
+
+.site-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 1rem 5%; border-bottom: 1px solid var(--border); background: var(--bg);
+}
+.site-header__logo img { display: block; height: 44px; width: auto; }
+.site-header nav { display: flex; gap: 1.5rem; font-weight: 500; font-size: 0.95rem; }
+.site-header nav a { color: var(--navy); text-decoration: none; }
+.site-header nav a[aria-current="page"] { color: var(--teal); }
+
+.page {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 520px); gap: 3rem 6rem; align-items: start;
+  max-width: 1200px; margin: 0 auto; padding: 4rem 5% 6rem;
+}
+.aside { position: sticky; top: 2rem; }
+.pill {
+  display: inline-block; margin: 0; padding: 0.5rem 1rem;
+  border: 1px solid var(--teal); border-radius: 999px; color: var(--teal);
+  font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.2;
+}
+.aside h1 {
+  margin: 1.5rem 0 0.75rem; font-size: 2.35rem; line-height: 1.15; font-weight: 600; letter-spacing: -0.01em;
+  color: var(--navy); text-wrap: balance;
+}
+.aside .lede { margin: 0 0 2rem; color: var(--sub); font-size: 1.05rem; max-width: 44ch; }
+.checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 1rem; max-width: 44ch; }
+.checks li { display: flex; align-items: flex-start; gap: 0.75rem; color: var(--body); line-height: 1.45; }
+.checks li::before {
+  content: ""; flex: 0 0 20px; width: 20px; height: 20px; margin-top: 0.15rem; border-radius: 50%;
+  background: var(--teal) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M6 10.5l2.6 2.6L14.5 7' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 20px no-repeat;
+}
+
+/* ------------------------------------------------------------------ */
+/* Progress                                                             */
+/* ------------------------------------------------------------------ */
+
+.progress { margin: 0 0 2.5rem; }
+.progress__segments { list-style: none; margin: 0 0 0.75rem; padding: 0; display: flex; gap: 10px; }
+.progress__segments li {
+  flex: 1 1 0; height: 8px; border-radius: 999px; background: var(--track); transition: background-color 0.2s;
+}
+.progress__segments li.is-done,
+.progress__segments li.is-current { background: var(--teal); }
+.progress__text { margin: 0; font-size: 0.95rem; color: var(--muted); }
+
+/* ------------------------------------------------------------------ */
+/* Steps                                                                */
+/* ------------------------------------------------------------------ */
+
+.step { border: 0; margin: 0; padding: 0; min-width: 0; }
+.step__title {
+  padding: 0; margin: 0 0 0.5rem; float: none; width: 100%;
+  font-size: 1.75rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; color: var(--navy);
+}
+.step__title:focus { outline: none; }
+.step__title:focus-visible { box-shadow: var(--focus); border-radius: 4px; }
+.step__intro { margin: 0 0 0.35rem; font-size: 1.05rem; color: var(--sub); }
+.step__note { margin: 0 0 1.75rem; font-size: 0.85rem; color: var(--muted); }
+
+.step__alert {
+  margin: 0 0 1.25rem; padding: 0.75rem 1rem;
+  border-radius: var(--radius); border: 1px solid var(--error);
+  background: var(--error-soft); color: var(--error); font-weight: 500;
+}
+
+.step__fields { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem 1rem; }
+
+/* ------------------------------------------------------------------ */
+/* Fields                                                               */
+/* ------------------------------------------------------------------ */
+
+.field { grid-column: 1 / -1; margin: 0; padding: 0; border: 0; min-width: 0; }
+.field--half { grid-column: auto; }
+.field > label,
+.field > legend {
+  display: block; padding: 0; margin: 0 0 0.5rem; float: none; width: 100%;
+  font-size: 0.95rem; font-weight: 500; line-height: 1.3; color: var(--ink);
+}
+
+.field input:not([type="checkbox"]):not([type="radio"]),
+.field select,
+.field textarea {
+  display: block; width: 100%; margin: 0; padding: 0.85rem 1rem;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); color: var(--ink);
+  font: inherit; font-size: 1rem; line-height: 1.3;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.field ::placeholder { color: var(--placeholder); opacity: 1; }
+.field textarea { min-height: 140px; resize: vertical; }
+.field select {
+  appearance: none; -webkit-appearance: none; padding-right: 2.5rem;
+  background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23364153' stroke-width='1.6'/%3E%3C/svg%3E") no-repeat right 1rem center;
+}
+.field select:invalid, .field select option[value=""] { color: var(--placeholder); }
+.field select option { color: var(--ink); }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--teal); box-shadow: var(--focus); }
+
+.field__error { display: block; margin: 0.4rem 0 0; color: var(--error); font-size: 0.875rem; line-height: 1.35; }
+.field.is-invalid input:not([type="checkbox"]),
+.field.is-invalid select,
+.field.is-invalid textarea { border-color: var(--error); box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.15); }
+.field.is-invalid .choice { border-color: var(--error); }
+
+/* Choice buttons: contact method (equal columns) and practice tiles */
+.choices { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 0.6rem; }
+.choice {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 46px; margin: 0; padding: 0.6rem 0.9rem;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--bg); color: var(--body);
+  font-size: 1rem; line-height: 1.25; text-align: center; cursor: pointer;
+  transition: border-color 0.15s, background-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.choice:hover { border-color: var(--teal); }
+.choice:focus-within { box-shadow: var(--focus); }
+.choice input { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); border: 0; }
+.choice.is-checked { border-color: var(--teal); background: var(--teal-soft); color: var(--navy); box-shadow: inset 0 0 0 1px var(--teal); }
+.choice.is-checked::before {
+  content: ""; width: 18px; height: 18px; flex: 0 0 auto;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Ccircle cx='10' cy='10' r='10' fill='%231db9c3'/%3E%3Cpath d='M6 10.5l2.6 2.6L14.5 7' fill='none' stroke='%23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+.tiles { display: grid; gap: 1.25rem; }
+.tiles__group { display: block; }
+.tiles__label {
+  margin: 0 0 0.5rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+}
+.tiles__items { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.6rem; }
+.tiles .choice { justify-content: flex-start; text-align: left; min-height: 50px; }
+.count {
+  display: inline-block; margin-left: 0.6rem; padding: 0.1rem 0.6rem; vertical-align: middle;
+  border-radius: 999px; background: var(--teal-soft); color: var(--navy); font-size: 0.75rem; font-weight: 600;
+}
+.hint {
+  margin: 0.85rem 0 0; padding: 0.65rem 0.9rem;
+  border-left: 3px solid var(--teal); border-radius: 0 6px 6px 0;
+  background: var(--teal-soft); color: var(--body); font-size: 0.92rem;
+}
+
+/* Consent keeps a real, visible checkbox */
+.choice--consent { justify-content: flex-start; align-items: flex-start; gap: 0.7rem; text-align: left; padding: 0.9rem 1rem; font-size: 0.95rem; }
+.choice--consent input { position: static; width: 1.1rem; height: 1.1rem; margin: 0.15rem 0 0; clip: auto; overflow: visible; flex: 0 0 auto; accent-color: var(--teal); }
+.choice--consent.is-checked { background: var(--bg); box-shadow: none; }
+.choice--consent.is-checked::before { display: none; }
+
+.captcha {
+  width: 300px; max-width: 100%; height: 65px; margin-top: 1.5rem;
+  border: 1px solid var(--border); border-radius: 6px; background: var(--bg-alt);
+  display: grid; place-items: center; color: var(--muted); font-size: 0.85rem; text-align: center; line-height: 1.3;
+}
+
+/* ------------------------------------------------------------------ */
+/* Actions                                                              */
+/* ------------------------------------------------------------------ */
+
+.actions { display: flex; flex-direction: column; align-items: stretch; gap: 0.75rem; margin-top: 2rem; }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 100%;
+  min-height: 52px; margin: 0; padding: 0.8rem 1.5rem;
+  border-radius: var(--radius); border: 1px solid transparent;
+  font: inherit; font-size: 1.05rem; font-weight: 500; line-height: 1.2; cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s, color 0.15s;
+}
+.btn:focus-visible { outline: none; box-shadow: var(--focus); }
+.btn--primary { background: var(--teal); color: #fff; }
+.btn--primary:hover { background: var(--teal-dark); }
+.btn--primary[data-next]::after { content: "\2192"; margin-left: 0.5rem; }
+.btn--ghost { background: transparent; color: var(--muted); min-height: 44px; }
+.btn--ghost::before { content: "\2190"; margin-right: 0.5rem; }
+.btn--ghost:hover { color: var(--navy); background: var(--bg-alt); }
+.step-form.is-sending .btn { pointer-events: none; opacity: 0.6; }
+.step-form.is-sending [type="submit"]::after { content: ""; width: 16px; height: 16px; margin-left: 0.6rem; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.5); border-top-color: #fff; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ------------------------------------------------------------------ */
+/* Confirmation                                                         */
+/* ------------------------------------------------------------------ */
+
+.confirmation { padding: 2rem; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); }
+.confirmation:focus { outline: none; }
+.confirmation__icon {
+  display: inline-grid; place-items: center; width: 48px; height: 48px; margin-bottom: 1rem;
+  border-radius: 50%; background: var(--teal); color: #fff; font-size: 1.4rem; font-weight: 700;
+}
+.confirmation h2 { margin: 0 0 0.5rem; font-size: 1.6rem; font-weight: 600; line-height: 1.2; color: var(--navy); }
+.confirmation__message { margin: 0 0 1.25rem; color: var(--sub); }
+.confirmation__next { margin: 0 0 0.5rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.confirmation ol { margin: 0 0 1.25rem; padding-left: 1.25rem; }
+.confirmation li { margin: 0 0 0.35rem; }
+.confirmation__contact { margin: 0; color: var(--muted); }
+
+/* ------------------------------------------------------------------ */
+/* Responsive                                                           */
+/* ------------------------------------------------------------------ */
+
+@media (max-width: 1024px) {
+  .tiles__items { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 900px) {
+  .page { grid-template-columns: 1fr; gap: 2.5rem; padding-top: 2.5rem; }
+  .aside { position: static; }
+  .aside h1 { font-size: 1.9rem; }
+}
+@media (max-width: 600px) {
+  .site-header nav { display: none; }
+  .step__fields { grid-template-columns: 1fr; }
+  .field--half { grid-column: 1 / -1; }
+  .tiles__items { grid-template-columns: 1fr; }
+  .step__title { font-size: 1.5rem; }
+  .confirmation { padding: 1.5rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

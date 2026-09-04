@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refer Your Doctor — Casa Pharma RX</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="css/forms.css">
+</head>
+<body>
+
+<header class="site-header">
+  <a class="site-header__logo" href="request-clinic-pricing.html"><img src="../assets/brand/logo-casa-pharma-rx.svg" alt="Casa Pharma Rx"></a>
+  <nav aria-label="Forms">
+    <a href="request-clinic-pricing.html">Request Clinic Pricing</a>
+    <a href="refer-your-doctor.html" aria-current="page">Refer Your Doctor</a>
+  </nav>
+</header>
+
+<main class="page">
+
+  <aside class="aside">
+    <p class="pill">For patients</p>
+    <h1>Refer your doctor to Casa Pharma RX</h1>
+    <p class="lede">If your healthcare provider isn't familiar with Casa Pharma RX, use this form and we'll send them what they need to decide whether our compounded medications are appropriate for your care.</p>
+    <ul class="checks">
+      <li>Complete the referral form with your doctor's contact information</li>
+      <li>We send your physician information about Casa Pharma RX and our compounded medications</li>
+      <li>Your doctor determines whether treatment through Casa Pharma RX is appropriate for your care</li>
+      <li>You receive a confirmation copy of your referral for your records</li>
+    </ul>
+  </aside>
+
+  <section aria-label="Refer Your Doctor form">
+
+    <form class="step-form" data-steps data-form-id="refer-your-doctor" novalidate>
+
+      <!-- Attribution fields the site fills from the URL (gclid, utm_*, ...). Kept so the payload matches the current form. -->
+      <input type="hidden" name="gclid"><input type="hidden" name="gbraid"><input type="hidden" name="wbraid"><input type="hidden" name="msclkid">
+      <input type="hidden" name="utm_source"><input type="hidden" name="utm_medium"><input type="hidden" name="utm_campaign"><input type="hidden" name="utm_campaign_id"><input type="hidden" name="utm_adgroup_id"><input type="hidden" name="utm_ad_id"><input type="hidden" name="utm_term"><input type="hidden" name="utm_device"><input type="hidden" name="utm_network"><input type="hidden" name="utm_id"><input type="hidden" name="utm_content">
+      <input type="hidden" name="adgroupid"><input type="hidden" name="campaignid"><input type="hidden" name="creative"><input type="hidden" name="lead_source"><input type="hidden" name="last_url_entry">
+
+      <div class="progress">
+        <ol class="progress__segments" aria-hidden="true"><li></li><li></li><li></li></ol>
+        <p class="progress__text" data-progress-text aria-live="polite">Step 1 of 3</p>
+      </div>
+
+      <!-- Step 1 -->
+      <fieldset class="step">
+        <legend class="step__title" tabindex="-1">Your information</legend>
+        <p class="step__intro">So we can confirm the referral with you</p>
+        <p class="step__note">All fields are required.</p>
+        <p class="step__alert" role="alert" hidden></p>
+
+        <div class="step__fields">
+          <div class="field field--half" data-message-required="Please enter your first name.">
+            <label for="text-firstname">First Name</label>
+            <input id="text-firstname" name="text-firstname" type="text" autocomplete="given-name" placeholder="Jane" required>
+            <p class="field__error" id="text-firstname-error" hidden></p>
+          </div>
+
+          <div class="field field--half" data-message-required="Please enter your last name.">
+            <label for="text-lastname">Last Name</label>
+            <input id="text-lastname" name="text-lastname" type="text" autocomplete="family-name" placeholder="Doe" required>
+            <p class="field__error" id="text-lastname-error" hidden></p>
+          </div>
+
+          <div class="field" data-message-required="Please enter your date of birth." data-message-invalid="Please enter a valid date of birth in the past.">
+            <label for="birth-date">Date of birth</label>
+            <input id="birth-date" name="birth-date" type="date" min="1920-01-01" data-max="today" autocomplete="bday" required>
+            <p class="field__error" id="birth-date-error" hidden></p>
+          </div>
+
+          <div class="field" data-message-required="Please enter your email address." data-message-invalid="Please enter a valid email address, like name@example.com.">
+            <label for="your-email">Email</label>
+            <input id="your-email" name="your-email" type="email" autocomplete="email" placeholder="jane.doe@email.com" required>
+            <p class="field__error" id="your-email-error" hidden></p>
+          </div>
+
+          <fieldset class="field" data-required data-min="1" data-message-required="Please choose at least one way to contact you.">
+            <legend>Preferred contact method</legend>
+            <div class="choices">
+              <label class="choice"><input type="checkbox" name="preferred-contact-method[]" value="Phone"><span>Phone</span></label>
+              <label class="choice"><input type="checkbox" name="preferred-contact-method[]" value="Email"><span>Email</span></label>
+              <label class="choice"><input type="checkbox" name="preferred-contact-method[]" value="Text Messages"><span>Text</span></label>
+            </div>
+            <p class="field__error" id="preferred-contact-method-error" hidden></p>
+          </fieldset>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn--primary" data-next>Continue</button>
+        </div>
+      </fieldset>
+
+      <!-- Step 2 -->
+      <fieldset class="step" hidden>
+        <legend class="step__title" tabindex="-1">Your doctor</legend>
+        <p class="step__intro">Who should receive information about Casa Pharma RX</p>
+        <p class="step__note">All fields are required.</p>
+        <p class="step__alert" role="alert" hidden></p>
+
+        <div class="step__fields">
+          <div class="field field--half" data-message-required="Please enter your doctor's first name.">
+            <label for="text-drname">Doctor's first name</label>
+            <input id="text-drname" name="text-drname" type="text" placeholder="John" required>
+            <p class="field__error" id="text-drname-error" hidden></p>
+          </div>
+
+          <div class="field field--half" data-message-required="Please enter your doctor's last name.">
+            <label for="text-drlastname">Doctor's last name</label>
+            <input id="text-drlastname" name="text-drlastname" type="text" placeholder="Smith" required>
+            <p class="field__error" id="text-drlastname-error" hidden></p>
+          </div>
+
+          <div class="field field--half" data-message-required="Please enter your doctor's mobile phone." data-message-invalid="Please enter a phone number with at least 10 digits.">
+            <label for="tel-mobileDR">Doctor's mobile phone</label>
+            <input id="tel-mobileDR" name="tel-mobileDR" type="tel" placeholder="(555) 123-4567" data-min-digits="10" required>
+            <p class="field__error" id="tel-mobileDR-error" hidden></p>
+          </div>
+
+          <div class="field field--half" data-message-required="Please enter your doctor's email address." data-message-invalid="Please enter a valid email address, like name@clinic.com.">
+            <label for="email-dr">Doctor's email</label>
+            <input id="email-dr" name="email-dr" type="email" placeholder="john.smith@clinic.com" required>
+            <p class="field__error" id="email-dr-error" hidden></p>
+          </div>
+
+          <div class="field" data-message-required="Please enter the clinic name.">
+            <label for="text-clinic">Clinic name</label>
+            <input id="text-clinic" name="text-clinic" type="text" autocomplete="organization" placeholder="Smith Family Clinic" required>
+            <p class="field__error" id="text-clinic-error" hidden></p>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn btn--primary" data-next>Continue</button>
+          <button type="button" class="btn btn--ghost" data-back>Back</button>
+        </div>
+      </fieldset>
+
+      <!-- Step 3 -->
+      <fieldset class="step" hidden>
+        <legend class="step__title" tabindex="-1">Almost done</legend>
+        <p class="step__intro">A note for your doctor, and your consent</p>
+        <p class="step__note">All fields are required.</p>
+        <p class="step__alert" role="alert" hidden></p>
+
+        <div class="step__fields">
+          <div class="field" data-message-required="Please add a comment for your doctor.">
+            <label for="textarea-976">Comments</label>
+            <textarea id="textarea-976" name="textarea-976" maxlength="255" placeholder="Anything your doctor should know" required></textarea>
+            <p class="field__error" id="textarea-976-error" hidden></p>
+          </div>
+
+          <div class="field consent" data-message-required="Please review and accept the Privacy Policy and Terms and Conditions to continue.">
+            <label class="choice choice--consent">
+              <input type="checkbox" name="acceptance-261" value="1" required>
+              <span>Please visit our <a href="https://casapharmarx.com/privacy-policy-terms-and-conditions/" target="_blank" rel="noopener noreferrer">Privacy Policy and Terms and Conditions</a> to continue.</span>
+            </label>
+            <p class="field__error" id="acceptance-error" hidden></p>
+          </div>
+        </div>
+
+        <div class="captcha" aria-hidden="true">Cloudflare Turnstile<br><small>renders here on the live site</small></div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn--primary">Send referral</button>
+          <button type="button" class="btn btn--ghost" data-back>Back</button>
+        </div>
+      </fieldset>
+
+    </form>
+
+    <section class="confirmation" data-confirmation-for="refer-your-doctor" role="status" tabindex="-1" hidden>
+      <span class="confirmation__icon" aria-hidden="true">✓</span>
+      <h2>Thank you for the referral</h2>
+      <p class="confirmation__message">We have received your doctor's details.</p>
+      <p class="confirmation__next">What happens next</p>
+      <ol>
+        <li>We send your doctor information about Casa Pharma RX and our compounded medications.</li>
+        <li>Your doctor decides whether treatment through Casa Pharma RX is appropriate for your care.</li>
+        <li>You receive a confirmation copy of this referral for your records.</li>
+      </ol>
+      <p class="confirmation__contact">Questions? Call (877) 937-6868 or email info@casapharmarx.com.</p>
+    </section>
+
+  </section>
+</main>
+
+<script src="../js/forms.js"></script>
+</body>
+</html>
