@@ -4,19 +4,19 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import {
-  compliance,
   portalBenefits,
-  presentationFacets,
   Product,
-  programBySlug,
-  programs,
   shopHeroAll,
   sortOptions,
 } from '@/lib/catalog';
 import { asset } from '@/lib/asset';
+import { presentationFacetsFrom, presentationSlug } from '@/lib/catalogMap';
 import { filterProducts, SortId, sortProducts } from '@/lib/search';
 import { peerRing, resetButton } from '@/lib/ui';
 import Reveal from '@/components/Reveal';
+import CatalogGate from '@/components/CatalogGate';
+import { useAuth } from '@/components/AuthContext';
+import { useCatalog } from '@/components/CatalogContext';
 import { useRequestList } from '@/components/RequestListContext';
 
 /** Presentation facet labels ↔ URL slugs (presentation state is URL-backed here,
@@ -26,7 +26,10 @@ const PRES_SLUGS: Record<string, string> = {
   '10 mL': '10-ml',
   'Pending confirmation': 'pending',
 };
-const PRES_LABELS = Object.fromEntries(Object.entries(PRES_SLUGS).map(([l, s]) => [s, l]));
+
+function slugForPresentation(label: string): string {
+  return PRES_SLUGS[label] ?? presentationSlug(label);
+}
 
 /** Short hero art-direction slugs used by the placeholder caption. */
 const HERO_SLUGS: Record<string, string> = {
@@ -80,6 +83,14 @@ export default function ShopPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { add } = useRequestList();
+  const { ready, token } = useAuth();
+  const { products: catalogProducts, programs, loading, error, refresh } = useCatalog();
+
+  const programBySlug = (slug: string) => programs.find((p) => p.slug === slug);
+  const presentationFacets = presentationFacetsFrom(catalogProducts);
+  const presLabelsBySlug = Object.fromEntries(
+    presentationFacets.map((f) => [slugForPresentation(f.label), f.label]),
+  );
 
   const programSlugs = (searchParams.get('program') ?? '').split(',').filter(Boolean);
   const presSlugs = (searchParams.get('presentation') ?? '').split(',').filter(Boolean);
@@ -87,7 +98,7 @@ export default function ShopPage() {
   const sort = (searchParams.get('sort') ?? 'featured') as SortId;
 
   const programLabels = programSlugs.map((s) => programBySlug(s)?.label).filter(Boolean) as string[];
-  const presLabels = presSlugs.map((s) => PRES_LABELS[s]).filter(Boolean);
+  const presLabels = presSlugs.map((s) => presLabelsBySlug[s]).filter(Boolean);
 
   const [sortOpen, setSortOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -119,9 +130,10 @@ export default function ShopPage() {
     write({ presentation: presSlugs.includes(slug) ? presSlugs.filter((s) => s !== slug) : [...presSlugs, slug] });
   const clearAll = () => write({ program: [], presentation: [], q: '' });
 
-  const filtered = filterProducts({ programLabels, presentations: presLabels, query });
+  const filtered = filterProducts({ list: catalogProducts, programLabels, presentations: presLabels, query });
   const shopProducts = sortProducts(filtered, sort);
   const n = shopProducts.length;
+  const total = catalogProducts.length;
   const hasFilters = programSlugs.length > 0 || presSlugs.length > 0 || query.length > 0;
 
   // Hero context — title, sub, caption slug, and gradient hue per README §6.5.
@@ -144,7 +156,7 @@ export default function ShopPage() {
   } else {
     hero = {
       title: shopHeroAll.title,
-      sub: `${n} of 8 formulations match your selected filters.`,
+      sub: `${n} of ${total} formulations match your selected filters.`,
       hue: shopHeroAll.heroHue,
       slug: 'all',
     };
@@ -162,7 +174,11 @@ export default function ShopPage() {
   const heroAnim = tickRef.current % 2 ? 'hero-swap-b' : 'hero-swap-a';
 
   const crumbTail = query ? ' / Search' : programLabels.length === 1 ? ` / ${programLabels[0]}` : '';
-  const heroCountLabel = hasFilters ? `${n} of 8 products` : '8 products';
+  const heroCountLabel = !token
+    ? 'Sign in to browse'
+    : hasFilters
+      ? `${n} of ${total} products`
+      : `${total} ${total === 1 ? 'product' : 'products'}`;
 
   const chips: { label: string; remove: () => void }[] = [
     ...(query ? [{ label: `“${query}”`, remove: () => write({ q: '' }) }] : []),
@@ -170,8 +186,8 @@ export default function ShopPage() {
       .filter((s) => programBySlug(s))
       .map((s) => ({ label: programBySlug(s)!.label, remove: () => toggleProgram(s) })),
     ...presSlugs
-      .filter((s) => PRES_LABELS[s])
-      .map((s) => ({ label: PRES_LABELS[s], remove: () => togglePres(s) })),
+      .filter((s) => presLabelsBySlug[s])
+      .map((s) => ({ label: presLabelsBySlug[s], remove: () => togglePres(s) })),
   ];
 
   const sortLabel = sortOptions.find((o) => o.id === sort)?.label ?? 'Featured';
@@ -212,6 +228,13 @@ export default function ShopPage() {
         </div>
       </div>
 
+      {!ready || (token && loading) ? (
+        <div className="px-4 py-16 text-center text-sm text-muted sm:px-8 lg:px-14">Loading catalog…</div>
+      ) : !token || error ? (
+        <div className="px-4 py-16 sm:px-8 lg:px-14">
+          <CatalogGate error={error} onRetry={error ? () => void refresh() : undefined} />
+        </div>
+      ) : (
       <div className="grid grid-cols-1 items-start gap-8 px-4 pb-[72px] pt-8 sm:px-8 lg:grid-cols-[264px_1fr] lg:gap-11 lg:px-14 lg:pt-11">
         {/* Filter sidebar — collapsible below lg, always expanded on desktop */}
         <aside className="flex flex-col gap-6 lg:sticky lg:top-6">
@@ -267,8 +290,8 @@ export default function ShopPage() {
                 key={f.label}
                 label={f.label}
                 count={f.count}
-                on={presSlugs.includes(PRES_SLUGS[f.label])}
-                onToggle={() => togglePres(PRES_SLUGS[f.label])}
+                on={presSlugs.includes(slugForPresentation(f.label))}
+                onToggle={() => togglePres(slugForPresentation(f.label))}
               />
             ))}
           </div>
@@ -360,12 +383,16 @@ export default function ShopPage() {
                 // <a> (invalid) or swallowing the product name in a card-long label.
                 <div key={p.slug} className="group relative flex flex-col gap-3.5">
                   <div className="relative h-[300px] overflow-hidden rounded-[20px] border border-line bg-white">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={asset(p.image)}
-                      alt={`${p.name} sterile vial`}
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-reveal group-hover:scale-105"
-                    />
+                    {p.image ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={asset(p.image)}
+                        alt={`${p.name} sterile vial`}
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-reveal group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="ph-stripe absolute inset-0" />
+                    )}
                     {p.badge && (
                       <span className="absolute left-3.5 top-3.5 rounded-full bg-brand px-3 py-1.5 text-meta-xs font-semibold tracking-[0.04em] text-white">
                         {p.badge}
@@ -381,7 +408,7 @@ export default function ShopPage() {
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
-                        write({ program: [programs.find((g) => g.label === p.program)!.slug], presentation: presSlugs, q: query });
+                        write({ program: [programs.find((g) => g.label === p.program)?.slug].filter(Boolean) as string[], presentation: presSlugs, q: query });
                       }}
                       aria-label={`Filter by ${p.program}`}
                       className={`${resetButton} relative z-10 self-start text-meta-xs font-semibold tracking-[0.09em] text-muted-2 hover:text-brand`}
@@ -426,6 +453,7 @@ export default function ShopPage() {
           )}
         </div>
       </div>
+      )}
 
       {/* About the catalog */}
       <Reveal className="grid grid-cols-1 items-start gap-8 bg-surface-alt px-4 py-14 sm:px-8 lg:grid-cols-[1fr_1.2fr] lg:gap-14 lg:px-14 lg:py-16">

@@ -3,14 +3,15 @@ import { Product, Program, products, programs, productInProgram } from './catalo
 /** Shop filtering — AND across the three axes; the text query is AND across
     whitespace tokens matched against name + program + presentations + spec + blurb. */
 export function filterProducts(opts: {
+  list?: Product[];
   programLabels?: string[];
   presentations?: string[];
   query?: string;
 }): Product[] {
-  const { programLabels = [], presentations = [], query = '' } = opts;
+  const { list = products, programLabels = [], presentations = [], query = '' } = opts;
   const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
 
-  return products.filter((p) => {
+  return list.filter((p) => {
     if (programLabels.length && !programLabels.some((label) => productInProgram(p, label))) {
       return false;
     }
@@ -46,13 +47,13 @@ export type SearchHit =
   | { kind: 'product'; product: Product; rank: number }
   | { kind: 'program'; program: Program; rank: number };
 
-export function navSearch(query: string): SearchHit[] {
+export function navSearch(query: string, list: Product[] = products, programList: Program[] = programs): SearchHit[] {
   const tokens = query.toLowerCase().split(/\s+/).filter(Boolean);
   if (!tokens.length) return [];
   const first = tokens[0];
 
   const productHits: SearchHit[] = [];
-  for (const p of products) {
+  for (const p of list) {
     const fields = [p.name, p.program, p.programAlt ?? '', p.presentations.join(' '), p.searchTerms]
       .join(' ')
       .toLowerCase();
@@ -64,7 +65,7 @@ export function navSearch(query: string): SearchHit[] {
   productHits.sort((a, b) => a.rank - b.rank);
 
   const programHits: SearchHit[] = [];
-  for (const g of programs) {
+  for (const g of programList) {
     const label = g.label.toLowerCase();
     if (!tokens.every((t) => label.includes(t))) continue;
     const rank = label.startsWith(first) ? 0 : label.includes(first) ? 1 : 2;

@@ -4,8 +4,11 @@ import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { asset } from '@/lib/asset';
-import { compliance, popularSearches, products, programs } from '@/lib/catalog';
+import { compliance, popularSearches, programs } from '@/lib/catalog';
 import { navSearch, SearchHit } from '@/lib/search';
+import AccountMenu from './AccountMenu';
+import { useAuth } from './AuthContext';
+import { useCatalog } from './CatalogContext';
 import { useRequestList } from './RequestListContext';
 
 type ResultCard = {
@@ -28,7 +31,7 @@ function toCard(hit: SearchHit): ResultCard {
       name: p.name,
       meta: p.spec.replace(/^Sterile vial · /, ''),
       badge: p.badge ?? '',
-      img: asset(p.image),
+      img: p.image ? asset(p.image) : '',
       isProgram: false,
       href: `/products/${p.slug}`,
     };
@@ -46,10 +49,6 @@ function toCard(hit: SearchHit): ResultCard {
   };
 }
 
-function featuredCards(): ResultCard[] {
-  return products.slice(0, 3).map((p) => toCard({ kind: 'product', product: p, rank: 0 }));
-}
-
 const arrowIcon = (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
     <path d="M5 12 L19 12 M13 6 L19 12 L13 18" />
@@ -61,6 +60,10 @@ export default function EvoShopNav() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { count, openDrawer } = useRequestList();
+  const { token, user, openLogin, closeLogin, logout } = useAuth();
+  const { products: catalogProducts, programs: catalogPrograms } = useCatalog();
+  const navProducts = catalogProducts;
+  const navPrograms = catalogPrograms.length ? catalogPrograms : programs;
 
   // The box mirrors the page's active query so the input reflects the URL.
   const urlQuery = pathname === '/shop' ? (searchParams.get('q') ?? '') : '';
@@ -96,6 +99,7 @@ export default function EvoShopNav() {
     const away = (e: MouseEvent) => {
       const t = e.target as HTMLElement;
       if (!t.closest('[data-programs-root]')) setMenuOpen(false);
+      if (!t.closest('[data-account-root]')) closeLogin();
       if (!t.closest('[data-search-root]')) {
         setSearchOpen(false);
         setHi(-1);
@@ -106,6 +110,7 @@ export default function EvoShopNav() {
       setMenuOpen(false);
       setMobileOpen(false);
       setSearchOpen(false);
+      closeLogin();
       setHi(-1);
     };
     document.addEventListener('mousedown', away);
@@ -114,14 +119,14 @@ export default function EvoShopNav() {
       document.removeEventListener('mousedown', away);
       document.removeEventListener('keydown', esc);
     };
-  }, []);
+  }, [closeLogin]);
 
   const trimmed = query.trim();
-  const found = trimmed ? navSearch(trimmed).map(toCard) : [];
-  const results = trimmed ? found : featuredCards();
+  const found = trimmed ? navSearch(trimmed, navProducts, navPrograms).map(toCard) : [];
+  const results = trimmed ? found : navProducts.slice(0, 3).map((p) => toCard({ kind: 'product', product: p, rank: 0 }));
   const noResults = trimmed.length > 0 && found.length === 0;
   const resultsHeading = trimmed ? (found.length ? 'Results' : 'No matches') : 'Featured formulations';
-  const allLabel = trimmed ? 'Search the full catalog' : 'Browse all 8 formulations';
+  const allLabel = trimmed ? 'Search the full catalog' : 'Browse all formulations';
   const allHref = trimmed ? `/shop?q=${encodeURIComponent(trimmed)}` : '/shop';
 
   const closeSearch = () => {
@@ -213,7 +218,7 @@ export default function EvoShopNav() {
             </button>
             {menuOpen && (
               <div className="absolute left-1/2 top-[52px] z-[60] flex w-[288px] -translate-x-1/2 animate-fadeIn flex-col gap-0.5 rounded-2xl border border-line bg-white p-2 shadow-menu">
-                {programs.map((p) => (
+                {navPrograms.map((p) => (
                   <Link
                     key={p.slug}
                     href={`/shop?program=${p.slug}`}
@@ -377,15 +382,7 @@ export default function EvoShopNav() {
             )}
           </div>
 
-          <button
-            aria-label="Account"
-            className="hidden h-10 w-10 cursor-pointer items-center justify-center rounded-[20px] border-none bg-transparent hover:bg-brand-tint lg:flex"
-          >
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#14253F" strokeWidth="1.8" strokeLinecap="round" className="shrink-0">
-              <circle cx="12" cy="8" r="3.6" />
-              <path d="M4.8 20 C5.6 16.4 8.4 14.4 12 14.4 C15.6 14.4 18.4 16.4 19.2 20" />
-            </svg>
-          </button>
+          <AccountMenu />
 
           <button
             aria-label="Open request list"
@@ -449,7 +446,7 @@ export default function EvoShopNav() {
             <span className="pb-1 pt-3.5 font-sans text-meta-xs font-semibold uppercase tracking-[0.1em] text-muted-2">
               Programs
             </span>
-            {programs.map((p) => (
+            {navPrograms.map((p) => (
               <Link
                 key={p.slug}
                 href={`/shop?program=${p.slug}`}
@@ -462,9 +459,32 @@ export default function EvoShopNav() {
             <a href="#" onClick={(e) => e.preventDefault()} className="flex min-h-11 items-center border-b border-line-faint py-2.5 font-sans text-[15px] font-medium text-navy no-underline">
               About
             </a>
-            <Link href="/faq" className="flex min-h-11 items-center py-2.5 font-sans text-[15px] font-medium text-navy no-underline">
+            <Link href="/faq" className="flex min-h-11 items-center border-b border-line-faint py-2.5 font-sans text-[15px] font-medium text-navy no-underline">
               Provider FAQ
             </Link>
+            {token && user ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  void logout();
+                }}
+                className="mt-2 flex min-h-11 cursor-pointer items-center border-none bg-transparent py-2.5 text-left font-sans text-[15px] font-medium text-navy"
+              >
+                Sign out · {user.email}
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  openLogin();
+                }}
+                className="mt-2 flex min-h-11 cursor-pointer items-center border-none bg-transparent py-2.5 text-left font-sans text-[15px] font-medium text-brand"
+              >
+                Sign in
+              </button>
+            )}
           </nav>
         </div>
       )}

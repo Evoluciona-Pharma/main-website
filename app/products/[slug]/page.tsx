@@ -1,22 +1,21 @@
-import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import ProductPage from '@/components/product/ProductPage';
+import ProductRoute from '@/components/product/ProductRoute';
 import { productBySlug, products } from '@/lib/catalog';
 
+const API_SEED_SLUGS = ['nad-plus', 'mots-c'];
+
 export function generateStaticParams() {
-  return products.map((p) => ({ slug: p.slug }));
+  return [...new Set([...API_SEED_SLUGS, ...products.map((p) => p.slug)])].map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const product = productBySlug(slug);
-  return { title: product ? `${product.name} — Evoluciona Pharma` : 'Evoluciona Pharma' };
+  const titleName = product?.name ?? slug.replace(/-/g, ' ');
+  return { title: `${titleName} — Evoluciona Pharma` };
 }
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const product = productBySlug(slug);
-  if (!product) notFound();
-  // Keyed by slug so image index, accordion, and presentation reset per product.
-  return <ProductPage key={product.slug} product={product} />;
+  return <ProductRoute slug={slug} />;
 }

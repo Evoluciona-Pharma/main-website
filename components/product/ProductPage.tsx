@@ -33,7 +33,15 @@ const chev = (open: boolean) => (
   </svg>
 );
 
-export default function ProductPage({ product }: { product: Product }) {
+export default function ProductPage({
+  product,
+  related: relatedProp,
+  pair: pairProp,
+}: {
+  product: Product;
+  related?: Product[];
+  pair?: Product;
+}) {
   const { add } = useRequestList();
   const [imgIndex, setImgIndex] = useState(0);
   const [acc, setAcc] = useState<string | null>('desc');
@@ -43,8 +51,8 @@ export default function ProductPage({ product }: { product: Product }) {
   const pending = product.presentationStatus === 'pending';
   const programSlug = programByLabel(product.program)?.slug ?? '';
   const catHref = `/shop?program=${programSlug}`;
-  const pair = pairedProduct(product);
-  const related = alsoReview(product);
+  const pair = pairProp ?? pairedProduct(product);
+  const related = relatedProp ?? alsoReview(product);
 
   const addMain = () => add({ name: product.name, program: product.program, presentation: size });
   const stickySpec = pending
@@ -83,13 +91,15 @@ export default function ProductPage({ product }: { product: Product }) {
         {/* Gallery */}
         <div className="flex flex-col gap-3">
           <Reveal className="group relative h-[320px] overflow-hidden rounded-[18px] border border-line bg-white sm:h-[420px] lg:h-[520px]">
-            {imgIndex === 0 ? (
+            {imgIndex === 0 && product.image ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={asset(product.image)}
                 alt={`${product.name} sterile vial`}
                 className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 ease-[ease] group-hover:scale-[1.06]"
               />
+            ) : imgIndex === 0 ? (
+              <div className="ph-stripe absolute inset-0" />
             ) : (
               <div
                 className="absolute inset-0 flex items-center justify-center"
@@ -116,7 +126,7 @@ export default function ProductPage({ product }: { product: Product }) {
                   border: imgIndex === i ? '2px solid #14258F' : '1px solid #E5E8ED',
                 }}
               >
-                {i === 0 ? (
+                {i === 0 && product.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={asset(product.image)} alt={`${product.name} vial`} className="h-full w-full object-cover" />
                 ) : (
@@ -214,7 +224,7 @@ export default function ProductPage({ product }: { product: Product }) {
 
           {/* Accordion — single-open, opens on Description */}
           <div className="flex flex-col border-b border-line-soft">
-            {sections.map((s) => (
+            {sections.filter((s) => s.body).map((s) => (
               <AccordionItem
                 key={s.id}
                 open={acc === s.id}

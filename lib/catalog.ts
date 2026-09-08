@@ -30,6 +30,10 @@ export type Product = {
   searchTerms: string;
   image: string;
   pendingNotice?: string;
+  /** Numeric id from `GET /api/catalog/products`. Absent on local JSON products. */
+  apiId?: number;
+  /** Presentation label → API id, for order lines. */
+  presentationIds?: Record<string, number>;
 };
 
 export type FaqBlock =
@@ -89,14 +93,15 @@ export function faqTopicBySlug(slug: string): FaqTopic | undefined {
 
 /** Products shown on a product page's "You may also review" rail:
     same-program products first, then the rest, capped at 4. */
-export function alsoReview(product: Product): Product[] {
-  const others = products.filter((p) => p.slug !== product.slug);
+export function alsoReview(product: Product, list: Product[] = products): Product[] {
+  const others = list.filter((p) => p.slug !== product.slug);
   const same = others.filter((p) => productInProgram(p, product.program));
   const rest = others.filter((p) => !productInProgram(p, product.program));
   return [...same, ...rest].slice(0, 4);
 }
 
 /** Pairing card product. Pairings are stored by display name. */
-export function pairedProduct(product: Product): Product | undefined {
-  return productByName(product.pairsWith);
+export function pairedProduct(product: Product, list: Product[] = products): Product | undefined {
+  if (!product.pairsWith) return undefined;
+  return list.find((p) => p.name === product.pairsWith || p.slug === product.pairsWith);
 }
