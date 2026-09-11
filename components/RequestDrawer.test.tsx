@@ -6,12 +6,12 @@ import { RequestListDrawer } from './RequestDrawer';
 import { RequestListProvider, useRequestList } from './RequestListContext';
 
 const list = [
-  { name: 'NAD+', cat: 'Longevity & Cellular Health', dose: '5 mL', remove: () => {} },
+  { name: 'NAD+', cat: 'Longevity & Cellular Health', dose: '5 mL', quantity: 1, remove: () => {} },
 ];
 
 function renderDrawer(onClose = () => {}) {
   return render(
-    <RequestListDrawer open count={1} list={list} onAdd={() => {}} onClose={onClose} />,
+    <RequestListDrawer open count={1} list={list} onAdd={() => {}} onQty={() => {}} onClose={onClose} />,
   );
 }
 

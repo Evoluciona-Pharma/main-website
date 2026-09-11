@@ -1,19 +1,30 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import type { Product } from '@/lib/catalog';
+
+export const QTY_MIN = 1;
+export const QTY_MAX = 20;
 
 export type RequestItem = {
   name: string;
   program: string;
-  /** null when the presentation is pending pharmacy confirmation (MOTS-C). */
+  /** null when the pharmacy has not confirmed a presentation. */
   presentation: string | null;
+  /** Hub catalog id — required later to POST an order line. */
+  productId?: number | null;
+  presentationId?: number | null;
+  quantity: number;
+  slug?: string;
+  image?: string;
 };
 
 type RequestListValue = {
   items: RequestItem[];
   count: number;
   drawerOpen: boolean;
-  add: (item: RequestItem) => void;
+  add: (item: Omit<RequestItem, 'quantity'> & { quantity?: number }) => void;
+  setQuantity: (name: string, quantity: number) => void;
   remove: (name: string) => void;
   clear: () => void;
   openDrawer: () => void;
@@ -23,6 +34,48 @@ type RequestListValue = {
 const RequestListContext = createContext<RequestListValue | null>(null);
 
 const STORAGE_KEY = 'evo-request-list';
+
+function clampQty(n: number): number {
+  if (!Number.isFinite(n)) return QTY_MIN;
+  return Math.min(QTY_MAX, Math.max(QTY_MIN, Math.round(n)));
+}
+
+function normalizeItem(raw: unknown): RequestItem | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const row = raw as Partial<RequestItem>;
+  if (typeof row.name !== 'string' || !row.name) return null;
+  return {
+    name: row.name,
+    program: typeof row.program === 'string' ? row.program : '',
+    presentation: row.presentation ?? null,
+    productId: typeof row.productId === 'number' ? row.productId : null,
+    presentationId: typeof row.presentationId === 'number' ? row.presentationId : null,
+    quantity: clampQty(typeof row.quantity === 'number' ? row.quantity : QTY_MIN),
+    slug: typeof row.slug === 'string' ? row.slug : undefined,
+    image: typeof row.image === 'string' ? row.image : undefined,
+  };
+}
+
+export function requestItemFromProduct(
+  product: Product,
+  presentation: string | null = product.defaultPresentation,
+  quantity = QTY_MIN,
+): RequestItem {
+  const presentationId =
+    presentation && product.presentationIds?.[presentation] != null
+      ? product.presentationIds[presentation]
+      : null;
+  return {
+    name: product.name,
+    program: product.program,
+    presentation,
+    productId: product.apiId ?? null,
+    presentationId,
+    quantity: clampQty(quantity),
+    slug: product.slug,
+    image: product.image,
+  };
+}
 
 export function RequestListProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<RequestItem[]>([]);
@@ -40,7 +93,9 @@ export function RequestListProvider({ children }: { children: React.ReactNode })
       const raw = window.localStorage.getItem(STORAGE_KEY);
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setItems(parsed);
+        if (Array.isArray(parsed)) {
+          setItems(parsed.map(normalizeItem).filter((item): item is RequestItem => item !== null));
+        }
       }
     } catch {
       /* corrupted storage — start empty */
@@ -64,19 +119,41 @@ export function RequestListProvider({ children }: { children: React.ReactNode })
     setAnnouncement(`${message} ${items.length} ${items.length === 1 ? 'item' : 'items'} in list.`);
   }, [items]);
 
-  const add = useCallback((item: RequestItem) => {
+  const add = useCallback((item: Omit<RequestItem, 'quantity'> & { quantity?: number }) => {
+    const next: RequestItem = {
+      ...item,
+      quantity: clampQty(item.quantity ?? QTY_MIN),
+      productId: item.productId ?? null,
+      presentationId: item.presentationId ?? null,
+    };
     setItems((prev) => {
-      const existing = prev.find((i) => i.name === item.name);
+      const existing = prev.find((i) => i.name === next.name);
       pendingAnnouncement.current = existing
-        ? `${item.name} updated in your request list.`
-        : `${item.name} added to your request list.`;
+        ? `${next.name} updated in your request list.`
+        : `${next.name} added to your request list.`;
       if (existing) {
-        // Never duplicate — adding an existing item updates its presentation instead.
-        return prev.map((i) => (i.name === item.name ? { ...i, presentation: item.presentation } : i));
+        // Never duplicate — re-adding updates presentation / ids and keeps qty
+        // unless the caller passed one.
+        return prev.map((i) =>
+          i.name === next.name
+            ? {
+                ...i,
+                ...next,
+                quantity: item.quantity != null ? next.quantity : i.quantity,
+                productId: next.productId ?? i.productId,
+                presentationId: next.presentationId ?? i.presentationId,
+              }
+            : i,
+        );
       }
-      return [...prev, item];
+      return [...prev, next];
     });
     setDrawerOpen(true);
+  }, []);
+
+  const setQuantity = useCallback((name: string, quantity: number) => {
+    const qty = clampQty(quantity);
+    setItems((prev) => prev.map((i) => (i.name === name ? { ...i, quantity: qty } : i)));
   }, []);
 
   const remove = useCallback((name: string) => {
@@ -90,7 +167,7 @@ export function RequestListProvider({ children }: { children: React.ReactNode })
 
   return (
     <RequestListContext.Provider
-      value={{ items, count: items.length, drawerOpen, add, remove, clear, openDrawer, closeDrawer }}
+      value={{ items, count: items.length, drawerOpen, add, setQuantity, remove, clear, openDrawer, closeDrawer }}
     >
       {children}
       <div role="status" aria-live="polite" className="sr-only">

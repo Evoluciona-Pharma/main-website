@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { asset } from '@/lib/asset';
 import { productBySlug, products, programs } from '@/lib/catalog';
 import Reveal from '@/components/Reveal';
-import { useRequestList } from '@/components/RequestListContext';
+import { requestItemFromProduct, useRequestList } from '@/components/RequestListContext';
 import CountUp from './CountUp';
 import StickyRequestBar from './StickyRequestBar';
 
@@ -108,7 +108,7 @@ export default function HomeAltPage({
 
   const addProduct = (slug: string) => {
     const p = productBySlug(slug);
-    if (p) add({ name: p.name, program: p.program, presentation: p.defaultPresentation });
+    if (p) add(requestItemFromProduct(p));
   };
 
   const scrollRail = (dir: 1 | -1) =>

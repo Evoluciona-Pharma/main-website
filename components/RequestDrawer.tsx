@@ -1,21 +1,23 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import { asset } from '@/lib/asset';
-import { compliance, productByName, products } from '@/lib/catalog';
-import { useRequestList } from './RequestListContext';
+import { compliance, products as localProducts, type Product } from '@/lib/catalog';
+import { useCatalog } from './CatalogContext';
+import { QTY_MAX, QTY_MIN, requestItemFromProduct, useRequestList } from './RequestListContext';
 
 export type DrawerItem = {
   name: string;
   cat: string;
   /** null when the pharmacy has not confirmed a presentation (MOTS-C). */
   dose: string | null;
+  quantity: number;
+  slug?: string;
+  image?: string;
   remove: () => void;
 };
 
-const QTY_MIN = 1;
-const QTY_MAX = 20;
 /** Card width (290) + gap (12) — one card per arrow press. */
 const RAIL_STEP = 302;
 
@@ -24,13 +26,13 @@ function presentationLabel(dose: string | null): string {
   return dose ? `${dose} sterile vial` : 'Presentation pending confirmation';
 }
 
-function thumbFor(name: string): string {
-  const product = productByName(name);
-  return asset(product ? product.image : 'assets/vials/nad.jpg');
+function thumbFor(it: DrawerItem): string {
+  if (it.image) return asset(it.image);
+  return asset('assets/vials/nad.jpg');
 }
 
-function hrefFor(name: string): string {
-  return `/products/${productByName(name)?.slug ?? ''}`;
+function hrefFor(it: DrawerItem): string {
+  return it.slug ? `/products/${it.slug}` : '/shop';
 }
 
 const TrashIcon = (
@@ -57,15 +59,18 @@ export function RequestListDrawer({
   count,
   list,
   onAdd,
+  onQty,
   onClose,
+  suggestProducts = localProducts,
 }: {
   open: boolean;
   count: number;
   list: DrawerItem[];
   onAdd: (name: string) => void;
+  onQty: (name: string, quantity: number) => void;
   onClose: () => void;
+  suggestProducts?: Product[];
 }) {
-  const [qty, setQty] = useState<Record<string, number>>({});
   const rail = useRef<HTMLDivElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const closeButton = useRef<HTMLButtonElement>(null);
@@ -129,20 +134,18 @@ export function RequestListDrawer({
 
   if (!open) return null;
 
-  const step = (name: string, delta: number) =>
-    setQty((q) => ({
-      ...q,
-      [name]: Math.min(QTY_MAX, Math.max(QTY_MIN, (q[name] ?? 1) + delta)),
-    }));
+  const step = (name: string, current: number, delta: number) => {
+    const next = current + delta;
+    if (next < QTY_MIN) return;
+    onQty(name, Math.min(QTY_MAX, next));
+  };
 
-  /** Drop the stored quantity too, so re-adding the item starts back at 1. */
   const removeItem = (it: DrawerItem) => {
-    setQty(({ [it.name]: _dropped, ...rest }) => rest);
     it.remove();
   };
 
   const inList = new Set(list.map((i) => i.name));
-  const suggestions = products.filter((p) => !inList.has(p.name)).slice(0, 5);
+  const suggestions = suggestProducts.filter((p) => !inList.has(p.name)).slice(0, 5);
 
   // Compliance copy is legally reviewed — split the canonical string rather than
   // retyping it, so only the emphasis is added.
@@ -205,13 +208,13 @@ export function RequestListDrawer({
             list.map((it) => (
               <div key={it.name} className="flex gap-4 border-b border-[#F0F1F4] py-[18px]">
                 <Link
-                  href={hrefFor(it.name)}
+                  href={hrefFor(it)}
                   onClick={onClose}
                   className="h-[92px] w-[92px] shrink-0 overflow-hidden rounded-lg bg-[#F2F3F5]"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={thumbFor(it.name)}
+                    src={thumbFor(it)}
                     alt={`${it.name} sterile vial`}
                     className="h-full w-full object-cover mix-blend-multiply"
                   />
@@ -221,7 +224,7 @@ export function RequestListDrawer({
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-col gap-1">
                       <Link
-                        href={hrefFor(it.name)}
+                        href={hrefFor(it)}
                         onClick={onClose}
                         className="text-[15px] font-semibold text-navy no-underline hover:text-brand"
                       >
@@ -241,24 +244,22 @@ export function RequestListDrawer({
                           the delete affordance rather than a dead button. */}
                       <button
                         onClick={() =>
-                          (qty[it.name] ?? 1) <= QTY_MIN ? removeItem(it) : step(it.name, -1)
+                          it.quantity <= QTY_MIN ? removeItem(it) : step(it.name, it.quantity, -1)
                         }
                         aria-label={
-                          (qty[it.name] ?? 1) <= QTY_MIN
+                          it.quantity <= QTY_MIN
                             ? `Remove ${it.name} from request list`
                             : `Decrease ${it.name} quantity`
                         }
                         className={`flex h-[34px] w-9 cursor-pointer items-center justify-center border-none bg-transparent hover:bg-[#F5F6F8] ${
-                          (qty[it.name] ?? 1) <= QTY_MIN ? 'text-muted hover:text-danger' : 'text-navy'
+                          it.quantity <= QTY_MIN ? 'text-muted hover:text-danger' : 'text-navy'
                         }`}
                       >
-                        {(qty[it.name] ?? 1) <= QTY_MIN ? TrashIcon : '−'}
+                        {it.quantity <= QTY_MIN ? TrashIcon : '−'}
                       </button>
-                      <span className="min-w-[26px] text-center text-sm text-navy">
-                        {qty[it.name] ?? 1}
-                      </span>
+                      <span className="min-w-[26px] text-center text-sm text-navy">{it.quantity}</span>
                       <button
-                        onClick={() => step(it.name, 1)}
+                        onClick={() => step(it.name, it.quantity, 1)}
                         aria-label={`Increase ${it.name} quantity`}
                         className="h-[34px] w-9 cursor-pointer border-none bg-transparent text-navy hover:bg-[#F5F6F8]"
                       >
@@ -368,23 +369,34 @@ export function RequestListDrawer({
 
 /** Context-connected wrapper: the drawer itself stays presentational. */
 export default function RequestDrawer() {
-  const { items, count, drawerOpen, add, remove, closeDrawer } = useRequestList();
+  const { items, count, drawerOpen, add, setQuantity, remove, closeDrawer } = useRequestList();
+  const { products: catalogProducts } = useCatalog();
+  const suggestProducts = catalogProducts.length ? catalogProducts : localProducts;
 
   const list: DrawerItem[] = items.map((i) => ({
     name: i.name,
     cat: i.program,
     dose: i.presentation,
+    quantity: i.quantity,
+    slug: i.slug,
+    image: i.image,
     remove: () => remove(i.name),
   }));
 
   const onAdd = (name: string) => {
-    const product = productByName(name);
-    if (product) {
-      add({ name: product.name, program: product.program, presentation: product.defaultPresentation });
-    }
+    const product = suggestProducts.find((p) => p.name === name);
+    if (product) add(requestItemFromProduct(product));
   };
 
   return (
-    <RequestListDrawer open={drawerOpen} count={count} list={list} onAdd={onAdd} onClose={closeDrawer} />
+    <RequestListDrawer
+      open={drawerOpen}
+      count={count}
+      list={list}
+      onAdd={onAdd}
+      onQty={setQuantity}
+      onClose={closeDrawer}
+      suggestProducts={suggestProducts}
+    />
   );
 }

@@ -15,7 +15,7 @@ import {
 import { peerRing, resetButton } from '@/lib/ui';
 import Reveal from '@/components/Reveal';
 import AccordionItem from '@/components/a11y/AccordionItem';
-import { useRequestList } from '@/components/RequestListContext';
+import { requestItemFromProduct, useRequestList } from '@/components/RequestListContext';
 
 const chev = (open: boolean) => (
   <svg
@@ -54,7 +54,7 @@ export default function ProductPage({
   const pair = pairProp ?? pairedProduct(product);
   const related = relatedProp ?? alsoReview(product);
 
-  const addMain = () => add({ name: product.name, program: product.program, presentation: size });
+  const addMain = () => add(requestItemFromProduct(product, size));
   const stickySpec = pending
     ? 'Sterile vial · presentation pending'
     : `Sterile vial · ${product.concentration ? `${product.concentration} · ${size}` : size}`;
@@ -272,7 +272,7 @@ export default function ProductPage({
                   </span>
                 </div>
                 <button
-                  onClick={() => add({ name: pair.name, program: pair.program, presentation: pair.defaultPresentation })}
+                  onClick={() => add(requestItemFromProduct(pair))}
                   className="h-[38px] cursor-pointer rounded-full border border-brand bg-white px-5 font-sans text-[13px] font-semibold text-brand transition-all duration-200 hover:bg-brand hover:text-white"
                 >
                   Add

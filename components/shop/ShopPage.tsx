@@ -17,7 +17,7 @@ import Reveal from '@/components/Reveal';
 import CatalogGate from '@/components/CatalogGate';
 import { useAuth } from '@/components/AuthContext';
 import { useCatalog } from '@/components/CatalogContext';
-import { useRequestList } from '@/components/RequestListContext';
+import { requestItemFromProduct, useRequestList } from '@/components/RequestListContext';
 
 /** Presentation facet labels ↔ URL slugs (presentation state is URL-backed here,
     unlike the prototype where it was local only — README §6.5). */
@@ -192,8 +192,7 @@ export default function ShopPage() {
 
   const sortLabel = sortOptions.find((o) => o.id === sort)?.label ?? 'Featured';
 
-  const addProduct = (p: Product) =>
-    add({ name: p.name, program: p.program, presentation: p.defaultPresentation });
+  const addProduct = (p: Product) => add(requestItemFromProduct(p));
 
   return (
     <div className="flex flex-col bg-white">
