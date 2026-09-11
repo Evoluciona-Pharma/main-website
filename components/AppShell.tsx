@@ -2,6 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import { Suspense } from 'react';
+import { AuthProvider } from './AuthContext';
+import { CatalogProvider } from './CatalogContext';
 import EvoShopFooter from './EvoShopFooter';
 import EvoShopNav from './EvoShopNav';
 import RequestDrawer from './RequestDrawer';
@@ -17,15 +19,19 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const hideFooter = pathname.startsWith('/request') && pathname !== '/request/confirmation';
 
   return (
-    <RequestListProvider>
-      <div className="relative mx-auto flex min-h-screen w-full max-w-frame flex-col bg-white">
-        <Suspense fallback={null}>
-          <EvoShopNav />
-        </Suspense>
-        <main className="flex flex-1 flex-col">{children}</main>
-        {!hideFooter && <EvoShopFooter />}
-      </div>
-      <RequestDrawer />
-    </RequestListProvider>
+    <AuthProvider>
+      <CatalogProvider>
+        <RequestListProvider>
+          <div className="relative mx-auto flex min-h-screen w-full max-w-frame flex-col bg-white">
+            <Suspense fallback={null}>
+              <EvoShopNav />
+            </Suspense>
+            <main className="flex flex-1 flex-col">{children}</main>
+            {!hideFooter && <EvoShopFooter />}
+          </div>
+          <RequestDrawer />
+        </RequestListProvider>
+      </CatalogProvider>
+    </AuthProvider>
   );
 }

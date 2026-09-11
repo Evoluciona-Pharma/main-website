@@ -8,5 +8,7 @@
 export const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
 
 export function asset(path: string): string {
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path) || path.startsWith('data:')) return path;
   return `${basePath}/${path.replace(/^\//, '')}`;
 }
