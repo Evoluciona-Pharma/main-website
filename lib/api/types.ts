@@ -91,3 +91,24 @@ export type ApiProduct = {
   contentSections?: ApiContentSection[];
   relationsFrom?: ApiProductRelation[];
 };
+
+export type CreateOrderDetail = {
+  productId: number;
+  productPresentationId?: number;
+  quantity: number;
+};
+
+export type CreateOrderBody = {
+  status: 'draft';
+  notes?: string | null;
+  details: CreateOrderDetail[];
+};
+
+export type CreatedOrder = {
+  id: number;
+  orderNumber: string;
+  status: string;
+  notes?: string | null;
+  details?: unknown[];
+};
+

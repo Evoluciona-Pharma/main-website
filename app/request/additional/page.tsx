@@ -3,11 +3,16 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useId, useRef, useState } from 'react';
-import { compliance } from '@/lib/catalog';
+import { useAuth } from '@/components/AuthContext';
 import { useRequestList } from '@/components/RequestListContext';
 import { CheckboxField, ErrorBanner, SelectField } from '@/components/request/fields';
 import { useWizard } from '@/components/request/RequestWizardContext';
 import { StepperCompact } from '@/components/request/steppers';
+import { createPatientOrder } from '@/lib/api/orders';
+import { ApiError } from '@/lib/api/client';
+import type { CreateOrderDetail } from '@/lib/api/types';
+import { compliance } from '@/lib/catalog';
+import { wizardToOrderNotes } from '@/lib/orderNotes';
 
 const HEAR_ABOUT = [
   'Colleague referral',
@@ -22,7 +27,10 @@ export default function AdditionalStep() {
   const router = useRouter();
   const { data, update, setSubmitted } = useWizard();
   const { items, clear } = useRequestList();
+  const { token, openLogin } = useAuth();
   const [error, setError] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [pending, setPending] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const bannerRef = useRef<HTMLDivElement>(null);
   const messageId = useId();
@@ -31,16 +39,56 @@ export default function AdditionalStep() {
     if (failedAttempts > 0) bannerRef.current?.focus();
   }, [failedAttempts]);
 
-  const submit = () => {
+  const submit = async () => {
     if (!data.attestation) {
       setError(true);
+      setSubmitError('');
       setFailedAttempts((n) => n + 1);
       return;
     }
-    const reference = `REQ-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
-    setSubmitted({ reference, items });
-    clear(); // the nav bag count resets to 0 on confirmation (README §6.8)
-    router.push('/request/confirmation');
+    if (!token) {
+      setSubmitError('Sign in to submit your request.');
+      setFailedAttempts((n) => n + 1);
+      openLogin();
+      return;
+    }
+    const details: CreateOrderDetail[] = [];
+    for (const item of items) {
+      if (item.productId == null) {
+        setSubmitError('Every item must come from the live catalog. Sign in, add formulations from Shop, and try again.');
+        setFailedAttempts((n) => n + 1);
+        return;
+      }
+      const line: CreateOrderDetail = {
+        productId: item.productId,
+        quantity: item.quantity || 1,
+      };
+      if (item.presentationId != null) line.productPresentationId = item.presentationId;
+      details.push(line);
+    }
+    if (!details.length) {
+      setSubmitError('Add at least one formulation to your request list.');
+      setFailedAttempts((n) => n + 1);
+      return;
+    }
+
+    setPending(true);
+    setSubmitError('');
+    try {
+      const order = await createPatientOrder(token, {
+        status: 'draft',
+        notes: wizardToOrderNotes(data) || null,
+        details,
+      });
+      setSubmitted({ reference: order.orderNumber, items });
+      clear();
+      router.push('/request/confirmation');
+    } catch (err) {
+      setSubmitError(err instanceof ApiError ? err.message : 'Could not submit your request. Try again.');
+      setFailedAttempts((n) => n + 1);
+    } finally {
+      setPending(false);
+    }
   };
 
   return (
@@ -49,8 +97,12 @@ export default function AdditionalStep() {
         <div className="flex w-full max-w-card flex-col gap-[22px] overflow-hidden rounded-[14px] border border-line-card bg-white px-5 pb-11 pt-9 sm:px-10">
           <StepperCompact current={4} label="Additional information" />
 
-          {error && (
-            <ErrorBanner ref={bannerRef} count={1} detail="The provider attestation is required" />
+          {(error || submitError) && (
+            <ErrorBanner
+              ref={bannerRef}
+              count={1}
+              detail={submitError || 'The provider attestation is required'}
+            />
           )}
 
           <div className="flex flex-col gap-[7px]">
@@ -94,10 +146,11 @@ export default function AdditionalStep() {
               Back
             </Link>
             <button
-              onClick={submit}
-              className="inline-flex h-[46px] cursor-pointer items-center rounded-full border-none bg-brand px-7 font-sans text-sm font-semibold text-white hover:bg-brand-hover"
+              onClick={() => void submit()}
+              disabled={pending}
+              className="inline-flex h-[46px] cursor-pointer items-center rounded-full border-none bg-brand px-7 font-sans text-sm font-semibold text-white hover:bg-brand-hover disabled:cursor-wait disabled:opacity-70"
             >
-              Submit request
+              {pending ? 'Submitting…' : 'Submit request'}
             </button>
           </div>
         </div>
