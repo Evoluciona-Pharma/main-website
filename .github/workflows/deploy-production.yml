@@ -1,0 +1,45 @@
+name: Deploy website production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-website-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run test
+      - run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.evolucionapharma.com
+
+  trigger-jenkins:
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      JENKINS_TOKEN: ${{ secrets.JENKINS_TOKEN }}
+    steps:
+      - name: Trigger Jenkins PROD-WEBSITE
+        if: env.JENKINS_TOKEN != ''
+        uses: appleboy/jenkins-action@v1
+        with:
+          url: ${{ secrets.JENKINS_URL }}
+          user: ${{ secrets.JENKINS_USER }}
+          token: ${{ secrets.JENKINS_TOKEN }}
+          job: PROD-WEBSITE
+          wait: true
+          timeout: 20m
+          parameters: |
+            ENVIRONMENT=production
