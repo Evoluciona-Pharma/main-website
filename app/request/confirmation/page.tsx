@@ -30,25 +30,23 @@ export default function ConfirmationPage() {
 
           <div className="mt-2 flex w-full flex-col gap-1 rounded-2xl border border-line p-6">
             <span className="pb-2 text-xs font-semibold tracking-[0.1em] text-muted-2">YOUR REQUEST</span>
-            {items.map((it) => {
-              const product = productByName(it.name);
-              return (
-                <div key={it.name} className="flex items-center gap-3 border-t border-line-softest py-[13px]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={asset(product ? product.image : 'assets/vials/nad.jpg')}
-                    alt={`${it.name} sterile vial`}
-                    className="h-[54px] w-[54px] shrink-0 rounded-[10px] border border-line bg-white object-cover"
-                  />
-                  <div className="flex flex-1 flex-col gap-0.5">
-                    <span className="font-display text-lg text-navy">{it.name}</span>
-                    <span className="text-xs text-muted-2">
-                      {it.program} · {it.presentation ?? 'presentation pending'}
-                    </span>
-                  </div>
+            {items.map((it) => (
+              <div key={it.name} className="flex items-center gap-3 border-t border-line-softest py-[13px]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={asset(it.image || (productByName(it.name)?.image ?? 'assets/vials/nad.jpg'))}
+                  alt={`${it.name} sterile vial`}
+                  className="h-[54px] w-[54px] shrink-0 rounded-[10px] border border-line bg-white object-cover"
+                />
+                <div className="flex flex-1 flex-col gap-0.5">
+                  <span className="font-display text-lg text-navy">{it.name}</span>
+                  <span className="text-xs text-muted-2">
+                    {it.program} · {it.presentation ?? 'presentation pending'}
+                    {it.quantity > 1 ? ` · qty ${it.quantity}` : ''}
+                  </span>
                 </div>
-              );
-            })}
+              </div>
+            ))}
             <div className="flex flex-col gap-2.5 border-t border-line-softest pt-4">
               <span className="text-xs font-semibold tracking-[0.1em] text-muted-2">WHAT HAPPENS NEXT</span>
               {confirmationSteps.map((step, i) => (

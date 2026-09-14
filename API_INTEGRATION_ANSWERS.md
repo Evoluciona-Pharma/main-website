@@ -274,3 +274,4 @@ Same as list, plus typically:
 **Ignore for now**
 
 - Assessment sessions, checkout-context, order history, PATCH status, pricing, admin APIs
+- Forwarding the draft order to the **external service** — see [`PENDING_EXTERNAL_ORDER_SYNC.md`](PENDING_EXTERNAL_ORDER_SYNC.md)
