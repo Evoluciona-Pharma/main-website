@@ -1,8 +1,7 @@
 /**
- * The app is fully static, so it can either run on a Node host (`next start`)
- * or be exported to plain files. Setting STATIC_EXPORT=1 produces `out/` for
- * GitHub Pages; NEXT_PUBLIC_BASE_PATH is the subdirectory it will be served
- * from (`/Site`), and stays empty for local development.
+ * STATIC_EXPORT=1 → plain files in `out/` for GitHub Pages.
+ * Otherwise → Node standalone (Docker / `next start`).
+ * NEXT_PUBLIC_BASE_PATH is the Pages subdirectory (`/Site`); empty locally.
  */
 const isExport = process.env.STATIC_EXPORT === '1';
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? '';
@@ -13,12 +12,10 @@ const nextConfig = {
   ...(isExport
     ? {
         output: 'export',
-        // Pages resolves /shop/ to shop/index.html — without this the export
-        // emits shop.html and every deep link 404s.
         trailingSlash: true,
         images: { unoptimized: true },
       }
-    : {}),
+    : { output: 'standalone' }),
   ...(basePath ? { basePath, assetPrefix: basePath } : {}),
 };
 

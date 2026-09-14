@@ -1,0 +1,16 @@
+.git
+.github
+.next
+out
+node_modules
+npm-debug.log*
+.env*.local
+.cursor
+.vscode
+.DS_Store
+coverage
+*.md
+design_handoff_evoluciona_provider_portal
+design-sources
+Site
+agent-transcripts
