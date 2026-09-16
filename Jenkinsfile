@@ -12,7 +12,7 @@ pipeline {
         choice(
             name: 'ENVIRONMENT',
             choices: ['staging', 'production'],
-            description: 'Staging deploys branch staging to 4.227.178.18. Production deploys main — set the prod host first.'
+            description: 'Staging deploys branch staging to 4.227.178.18. Production deploys main to 48.216.240.184.'
         )
     }
 
@@ -42,7 +42,7 @@ pipeline {
                     env.DEPLOY_BRANCH = isProd ? 'main' : 'staging'
                     env.DEPLOY_USER = env.WEBSITE_DEPLOY_USER ?: 'azureuser'
                     env.DEPLOY_HOST = isProd
-                        ? (env.WEBSITE_PROD_HOST ?: '')
+                        ? (env.WEBSITE_PROD_HOST ?: '48.216.240.184')
                         : (env.WEBSITE_STG_HOST ?: '4.227.178.18')
                     env.SSH_CREDENTIALS_ID = isProd
                         ? (env.WEBSITE_PROD_SSH_CREDENTIALS ?: 'prod-ssh-key')
@@ -54,11 +54,11 @@ pipeline {
                     // Fallback only. The secret file wins, because that is the
                     // one place an operator can change without editing code.
                     env.NEXT_PUBLIC_API_URL = isProd
-                        ? (env.WEBSITE_PROD_API_URL ?: '')
+                        ? (env.WEBSITE_PROD_API_URL ?: 'https://api.evolucionapharma.com')
                         : (env.WEBSITE_STG_API_URL ?: 'https://api-stg.evolucionapharma.com')
 
                     if (!env.DEPLOY_HOST?.trim()) {
-                        error 'Production host is empty. Set WEBSITE_PROD_HOST on this job (copy DEPLOY_HOST from the old PROD-WEBSITE job if you have it).'
+                        error 'DEPLOY_HOST is empty. Set WEBSITE_PROD_HOST or WEBSITE_STG_HOST on this job.'
                     }
                     echo "Deploy ${params.ENVIRONMENT} → ${env.DEPLOY_USER}@${env.DEPLOY_HOST} branch=${env.DEPLOY_BRANCH} NEXT_PUBLIC_API_URL='${env.NEXT_PUBLIC_API_URL}'"
                 }
