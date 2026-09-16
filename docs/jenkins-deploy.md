@@ -11,7 +11,7 @@ Environment values come from a Jenkins **Secret file**, same idea as the API. Th
 
 Linux user: `azureuser`. GitHub clone credential: `github-credentials`.
 
-The container is published as **`127.0.0.1:3001`** (same port Next uses inside the image). Custom Hub front uses **8081**; the API uses **3000**.
+The container is published as **`127.0.0.1:8080`** (Next listens on 3001 inside). Custom Hub front uses **8081**; the API uses **3000**. Host nginx already proxies the public site to 8080.
 
 The Custom Hub API must allow CORS from the website origin (`CORS_ORIGIN=https://staging.evolucionapharma.com` on the API secret file). Login/catalog will fail until that API is reachable.
 
@@ -26,7 +26,7 @@ Jenkins → Manage Jenkins → Credentials → System → Global credentials →
 
 `next build` inlines `NEXT_PUBLIC_*` into the browser bundle, so Jenkins reads this value on the agent at **build** time. Editing the file on the VM changes nothing until the job runs again.
 
-The same file is also copied to `/home/azureuser/main-website.env` and passed to `docker run --env-file`, which is where any future server-side variable belongs. Do not put `PORT` or `HOSTNAME` in it: the image binds 3001 and the deploy maps that port.
+The same file is also copied to `/home/azureuser/main-website.env` and passed to `docker run --env-file`, which is where any future server-side variable belongs. Do not put `PORT` or `HOSTNAME` in it: the image binds 3001 and Jenkins maps host 8080 → 3001.
 
 Save it as plain UTF-8 with LF endings. The pipeline strips CR, but it cannot repair UTF-16.
 
@@ -89,7 +89,7 @@ On the **new** Jenkins (`http://135.222.210.21:8080/`), not the old website Jenk
 
 The `Build Image` stage logs the value it used: `Building with NEXT_PUBLIC_API_URL=...`.
 
-The first build can run **before** DNS/nginx exist. Success means: image on the VM, container healthy on `127.0.0.1:3001`. The public hostname comes after DevOps wires nginx.
+The first build can run **before** DNS/nginx exist. Success means: image on the VM, container healthy on `127.0.0.1:8080`. The public hostname comes after DevOps wires nginx.
 
 ## 4. Jenkins job `PROD-WEBSITE` (later)
 
@@ -106,7 +106,7 @@ Do not run production until staging is confirmed.
 
 No git clone on the server. Needs Docker (`azureuser` in the `docker` group), nginx, and DNS.
 
-1. Confirm host port **3001** is free (`ss -lntp | grep 3001`).
+1. Confirm host port **8080** is free (`ss -lntp | grep 8080`).
 2. DNS `staging.evolucionapharma.com` → public IP of that VM.
 3. Install `deploy/nginx-website-stg.conf.example` as an nginx site.
 4. `sudo certbot --nginx -d staging.evolucionapharma.com`

@@ -26,9 +26,10 @@ pipeline {
 
         IMAGE_NAME           = 'main-website'
         CONTAINER_NAME       = 'main-website'
-        // Next listens on 3001; DevOps bound the same port on the VM.
+        // Next listens on 3001 inside the image. Host 8080 is the port
+        // already wired in nginx for staging.evolucionapharma.com.
         // Hub front stays on 8081, API on 3000.
-        APP_PORT             = '3001'
+        APP_PORT             = '8080'
         CONTAINER_PORT       = '3001'
         KEEP_IMAGES          = '3'
     }
