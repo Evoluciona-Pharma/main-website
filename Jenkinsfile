@@ -26,10 +26,9 @@ pipeline {
 
         IMAGE_NAME           = 'main-website'
         CONTAINER_NAME       = 'main-website'
-        // Next listens on 3001 inside the image. Host 8080 matches the old
-        // STG-WEBSITE mapping so nginx for staging.evolucionapharma.com can
-        // keep proxying to 127.0.0.1:8080 (hub front uses 8081).
-        APP_PORT             = '8080'
+        // Next listens on 3001; DevOps bound the same port on the VM.
+        // Hub front stays on 8081, API on 3000.
+        APP_PORT             = '3001'
         CONTAINER_PORT       = '3001'
         KEEP_IMAGES          = '3'
     }
@@ -47,17 +46,18 @@ pipeline {
                     env.SSH_CREDENTIALS_ID = isProd
                         ? (env.WEBSITE_PROD_SSH_CREDENTIALS ?: 'prod-ssh-key')
                         : (env.WEBSITE_STG_SSH_CREDENTIALS ?: 'stg-deploy-ssh')
-                    // Baked into the Next bundle. Override when DevOps gives
-                    // the real API host. Empty localhost would break browsers.
+                    env.ENV_CREDENTIALS_ID = isProd
+                        ? (env.WEBSITE_PROD_ENV ?: 'main-website-env-prod')
+                        : (env.WEBSITE_STG_ENV ?: 'main-website-env-stg')
+                    env.REMOTE_ENV_FILE = "/home/${env.DEPLOY_USER}/main-website.env"
+                    // Fallback only. The secret file wins, because that is the
+                    // one place an operator can change without editing code.
                     env.NEXT_PUBLIC_API_URL = isProd
                         ? (env.WEBSITE_PROD_API_URL ?: '')
                         : (env.WEBSITE_STG_API_URL ?: 'https://api-stg.evolucionapharma.com')
 
                     if (!env.DEPLOY_HOST?.trim()) {
                         error 'Production host is empty. Set WEBSITE_PROD_HOST on this job (copy DEPLOY_HOST from the old PROD-WEBSITE job if you have it).'
-                    }
-                    if (!env.NEXT_PUBLIC_API_URL?.trim()) {
-                        error 'NEXT_PUBLIC_API_URL is empty. Set WEBSITE_STG_API_URL or WEBSITE_PROD_API_URL on this job.'
                     }
                     echo "Deploy ${params.ENVIRONMENT} → ${env.DEPLOY_USER}@${env.DEPLOY_HOST} branch=${env.DEPLOY_BRANCH} NEXT_PUBLIC_API_URL='${env.NEXT_PUBLIC_API_URL}'"
                 }
@@ -103,13 +103,26 @@ pipeline {
 
         stage('Build Image') {
             steps {
-                sh '''
-                    docker build --pull --target production \
-                        --build-arg NEXT_PUBLIC_API_URL="$NEXT_PUBLIC_API_URL" \
-                        -t "$IMAGE_NAME:$IMAGE_TAG" \
-                        -t "$IMAGE_NAME:latest" \
-                        .
-                '''
+                withCredentials([file(credentialsId: "${ENV_CREDENTIALS_ID}", variable: 'SECRET_ENV')]) {
+                    sh '''
+                        # next build inlines NEXT_PUBLIC_*, so the value has to be
+                        # read here rather than on the server. The file is never
+                        # copied into the build context: the image would ship it.
+                        FILE_API_URL=$(tr -d '\\r' < "$SECRET_ENV" \
+                            | sed -n 's/^NEXT_PUBLIC_API_URL=//p' | tail -n 1)
+                        API_URL=${FILE_API_URL:-$NEXT_PUBLIC_API_URL}
+                        [ -n "$API_URL" ] || {
+                            echo "ERROR: no NEXT_PUBLIC_API_URL in the $ENV_CREDENTIALS_ID secret file."
+                            exit 1
+                        }
+                        echo "Building with NEXT_PUBLIC_API_URL=$API_URL"
+                        docker build --pull --target production \
+                            --build-arg NEXT_PUBLIC_API_URL="$API_URL" \
+                            -t "$IMAGE_NAME:$IMAGE_TAG" \
+                            -t "$IMAGE_NAME:latest" \
+                            .
+                    '''
+                }
             }
         }
 
@@ -129,17 +142,27 @@ pipeline {
         stage('Start Container') {
             steps {
                 sshagent(credentials: ["${SSH_CREDENTIALS_ID}"]) {
-                    sh '''
-                        ssh $SSH_OPTS "$DEPLOY_USER@$DEPLOY_HOST" "
-                            $DOCKER rm -f $CONTAINER_NAME 2>/dev/null || true
-                            $DOCKER run -d \\
-                                --name $CONTAINER_NAME \\
-                                --restart unless-stopped \\
-                                -p 127.0.0.1:$APP_PORT:$CONTAINER_PORT \\
-                                $IMAGE_NAME:$IMAGE_TAG
-                            $DOCKER ps --filter name=$CONTAINER_NAME
-                        "
-                    '''
+                    withCredentials([file(credentialsId: "${ENV_CREDENTIALS_ID}", variable: 'SECRET_ENV')]) {
+                        sh '''
+                            scp $SSH_OPTS "$SECRET_ENV" "$DEPLOY_USER@$DEPLOY_HOST:$REMOTE_ENV_FILE"
+                            ssh $SSH_OPTS "$DEPLOY_USER@$DEPLOY_HOST" "
+                                # docker --env-file keeps a trailing CR as part
+                                # of the value, so a file saved on Windows makes
+                                # every variable unusable inside the container.
+                                tr -d '\\r' < $REMOTE_ENV_FILE > $REMOTE_ENV_FILE.clean
+                                mv $REMOTE_ENV_FILE.clean $REMOTE_ENV_FILE
+                                chmod 600 $REMOTE_ENV_FILE
+                                $DOCKER rm -f $CONTAINER_NAME 2>/dev/null || true
+                                $DOCKER run -d \\
+                                    --name $CONTAINER_NAME \\
+                                    --restart unless-stopped \\
+                                    --env-file $REMOTE_ENV_FILE \\
+                                    -p 127.0.0.1:$APP_PORT:$CONTAINER_PORT \\
+                                    $IMAGE_NAME:$IMAGE_TAG
+                                $DOCKER ps --filter name=$CONTAINER_NAME
+                            "
+                        '''
+                    }
                 }
             }
         }

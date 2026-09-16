@@ -1,7 +1,7 @@
 # Host nginx for https://staging.evolucionapharma.com on the staging VM.
-# The Next.js container listens on 127.0.0.1:8080 (maps to 3001 inside).
+# The Next.js container listens on 127.0.0.1:3001.
 # The browser calls the API at NEXT_PUBLIC_API_URL (api-stg), not through this
-# vhost. Hub front already uses 8081; API uses 3000.
+# vhost. Hub front uses 8081; API uses 3000.
 #
 # sudo certbot --nginx -d staging.evolucionapharma.com
 
@@ -30,7 +30,7 @@ server {
     client_max_body_size 20m;
 
     location / {
-        proxy_pass http://127.0.0.1:8080;
+        proxy_pass http://127.0.0.1:3001;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

@@ -2,7 +2,7 @@
 
 Same pattern as Custom Hub: Jenkins builds the image on the agent, streams it with `docker save | ssh docker load`, and starts the container. GitHub Actions tests/builds on merge, then triggers the job.
 
-No Jenkins **Secret file** is required. The only environment-specific value is `NEXT_PUBLIC_API_URL`, baked into the Next.js bundle at **image build** time. When DevOps gives you the real API host, set it on the Jenkins job and rebuild (changing `.env` on the VM does nothing).
+Environment values come from a Jenkins **Secret file**, same idea as the API. The one value that matters today is `NEXT_PUBLIC_API_URL`.
 
 | Environment | Git branch | Jenkins job | SSH credential ID | Default host | Public URL |
 |-------------|------------|-------------|-------------------|--------------|------------|
@@ -11,11 +11,26 @@ No Jenkins **Secret file** is required. The only environment-specific value is `
 
 Linux user: `azureuser`. GitHub clone credential: `github-credentials`.
 
-The container listens on **3001 inside** and is published as **`127.0.0.1:8080`** so host nginx can keep the old website mapping. Custom Hub front uses **8081**; the API uses **3000**.
-
-Default staging API URL: `https://api-stg.evolucionapharma.com`. Override with job env `WEBSITE_STG_API_URL` if the backend host is different. Production has no default — set `WEBSITE_PROD_API_URL` before the first prod deploy.
+The container is published as **`127.0.0.1:3001`** (same port Next uses inside the image). Custom Hub front uses **8081**; the API uses **3000**.
 
 The Custom Hub API must allow CORS from the website origin (`CORS_ORIGIN=https://staging.evolucionapharma.com` on the API secret file). Login/catalog will fail until that API is reachable.
+
+## Secret file (where the API URL lives)
+
+Jenkins → Manage Jenkins → Credentials → System → Global credentials → **Add Credentials** → Kind **Secret file**.
+
+| ID to type | Upload |
+|------------|--------|
+| `main-website-env-stg` | `deploy/env.example` filled with `NEXT_PUBLIC_API_URL=https://api-stg.evolucionapharma.com` |
+| `main-website-env-prod` | same with `https://api.evolucionapharma.com` |
+
+`next build` inlines `NEXT_PUBLIC_*` into the browser bundle, so Jenkins reads this value on the agent at **build** time. Editing the file on the VM changes nothing until the job runs again.
+
+The same file is also copied to `/home/azureuser/main-website.env` and passed to `docker run --env-file`, which is where any future server-side variable belongs. Do not put `PORT` or `HOSTNAME` in it: the image binds 3001 and the deploy maps that port.
+
+Save it as plain UTF-8 with LF endings. The pipeline strips CR, but it cannot repair UTF-16.
+
+If the file has no `NEXT_PUBLIC_API_URL`, the job falls back to `WEBSITE_STG_API_URL` / `WEBSITE_PROD_API_URL`, and staging falls back again to `https://api-stg.evolucionapharma.com`. Production has no default and the build fails instead of shipping a bundle pointing nowhere.
 
 ## 1. Git: create branch `staging`
 
@@ -58,18 +73,23 @@ On the **new** Jenkins (`http://135.222.210.21:8080/`), not the old website Jenk
    - Credentials: `github-credentials`
    - Branch Specifier: `*/staging`
    - Script Path: `Jenkinsfile`
-4. Optional (Manage Jenkins or job Configure → Environment):
+4. Create the `main-website-env-stg` secret file (see above).
+5. Optional overrides. A Pipeline job has no environment section of its own, so
+   these go in **Manage Jenkins → System → Global properties → Environment
+   variables**:
 
    | Variable | When to set |
    |----------|-------------|
    | `WEBSITE_STG_HOST` | if staging is not `4.227.178.18` |
    | `WEBSITE_DEPLOY_USER` | if not `azureuser` |
    | `WEBSITE_STG_SSH_CREDENTIALS` | if the SSH ID is not `stg-deploy-ssh` |
-   | `WEBSITE_STG_API_URL` | when you have the real API public URL |
+   | `WEBSITE_STG_ENV` | if the secret file ID is not `main-website-env-stg` |
 
-5. Save → **Build with Parameters** → `ENVIRONMENT=staging`.
+6. Save → **Build with Parameters** → `ENVIRONMENT=staging`.
 
-The first build can run **before** DNS/nginx exist. Success means: image on the VM, container healthy on `127.0.0.1:8080`. The public hostname comes after DevOps wires nginx.
+The `Build Image` stage logs the value it used: `Building with NEXT_PUBLIC_API_URL=...`.
+
+The first build can run **before** DNS/nginx exist. Success means: image on the VM, container healthy on `127.0.0.1:3001`. The public hostname comes after DevOps wires nginx.
 
 ## 4. Jenkins job `PROD-WEBSITE` (later)
 
@@ -77,7 +97,8 @@ Same as staging, but:
 
 - Branch: `*/main`
 - Default parameter `production`
-- Set `WEBSITE_PROD_HOST` and `WEBSITE_PROD_API_URL` (and SSH ID `prod-ssh-key` unless you override `WEBSITE_PROD_SSH_CREDENTIALS`)
+- Create the `main-website-env-prod` secret file with the production API URL
+- Set `WEBSITE_PROD_HOST` (and SSH ID `prod-ssh-key` unless you override `WEBSITE_PROD_SSH_CREDENTIALS`)
 
 Do not run production until staging is confirmed.
 
@@ -85,7 +106,7 @@ Do not run production until staging is confirmed.
 
 No git clone on the server. Needs Docker (`azureuser` in the `docker` group), nginx, and DNS.
 
-1. Confirm host port **8080** is free (`ss -lntp | grep 8080`).
+1. Confirm host port **3001** is free (`ss -lntp | grep 3001`).
 2. DNS `staging.evolucionapharma.com` → public IP of that VM.
 3. Install `deploy/nginx-website-stg.conf.example` as an nginx site.
 4. `sudo certbot --nginx -d staging.evolucionapharma.com`
