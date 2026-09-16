@@ -42,6 +42,10 @@ NEXT_PUBLIC_API_URL=https://api.example.com docker compose up --build
 docker compose down
 ```
 
+## Jenkins (staging / production)
+
+Docker image on the Azure VM, nginx in front. Step-by-step: [docs/jenkins-deploy.md](docs/jenkins-deploy.md).
+
 ## GitHub Pages
 
 A push to `main` publishes the static export at https://evoluciona-pharma.github.io/Site/ (`NEXT_PUBLIC_BASE_PATH=/Site`).
